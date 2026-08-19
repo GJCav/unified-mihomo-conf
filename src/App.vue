@@ -80,7 +80,7 @@ const profilePlans: Array<{ id: ProfileId; name: string; info: string; plan: Pla
     id: "server",
     name: "Normal server",
     info: "Relays unmatched traffic through the gateway.",
-    plan: { general: "basic", externalUi: "none", dns: "basic", tun: ["basic"], providers: [], groups: [], proxies: ["gateway"], rules: [...basicRules] },
+    plan: { general: "basic", externalUi: "none", dns: "basic", tun: ["basic", "tailscale-route-exclusion"], providers: [], groups: [], proxies: ["gateway"], rules: [...basicRules] },
   },
   {
     id: "laptop",
