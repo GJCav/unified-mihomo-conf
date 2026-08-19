@@ -4,6 +4,7 @@ import hljs from "highlight.js/lib/core";
 import yaml from "highlight.js/lib/languages/yaml";
 import QrcodeVue from "qrcode.vue";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { loadTemplateValues, saveTemplateValues } from "./template-cache";
 
 hljs.registerLanguage("yaml", yaml);
 
@@ -97,6 +98,7 @@ const profilePlans: Array<{ id: ProfileId; name: string; info: string; plan: Pla
 ];
 
 const params = new URLSearchParams(window.location.search);
+const cachedTemplateValues = loadTemplateValues();
 const hasCompactPlan = params.has("g");
 const initialPlan: Plan = hasCompactPlan
   ? {
@@ -120,10 +122,10 @@ const initialPlan: Plan = hasCompactPlan
   : structuredClone(profilePlans.find((profile) => profile.id === "laptop")!.plan);
 
 const plan = ref<Plan>(initialPlan);
-const subscriptionUrl = ref(params.get("u") ?? "");
-const gatewayServer = ref(params.get("s") ?? "192.168.55.1");
-const tailscaleHostname = ref(params.get("h") ?? "ipad-air");
-const tailscaleAuthKey = ref(params.get("k") ?? "");
+const subscriptionUrl = ref(params.get("u") ?? cachedTemplateValues?.subscriptionUrl ?? "");
+const gatewayServer = ref(params.get("s") ?? cachedTemplateValues?.gatewayServer ?? "192.168.55.1");
+const tailscaleHostname = ref(params.get("h") ?? cachedTemplateValues?.tailscaleHostname ?? "ipad-air");
+const tailscaleAuthKey = ref(params.get("k") ?? cachedTemplateValues?.tailscaleAuthKey ?? "");
 const selectedProfile = ref<ProfileId | "custom">(hasCompactPlan ? "custom" : "laptop");
 const renderedYaml = ref("");
 const renderError = ref("");
@@ -132,6 +134,19 @@ const copied = ref<"import" | "yaml" | null>(null);
 const draggedRule = ref<RulesChoice | null>(null);
 const authContext = ref<AuthContext | null>(null);
 const authContextError = ref("");
+
+watch(
+  [subscriptionUrl, gatewayServer, tailscaleHostname, tailscaleAuthKey],
+  ([currentSubscriptionUrl, currentGatewayServer, currentTailscaleHostname, currentTailscaleAuthKey]) => {
+    saveTemplateValues({
+      subscriptionUrl: currentSubscriptionUrl,
+      gatewayServer: currentGatewayServer,
+      tailscaleHostname: currentTailscaleHostname,
+      tailscaleAuthKey: currentTailscaleAuthKey,
+    });
+  },
+  { immediate: true },
+);
 
 const ruleItems = computed(() => {
   const ordered = [...plan.value.rules];
