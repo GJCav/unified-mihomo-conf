@@ -14,6 +14,16 @@
   "secrets": {
     "required": ["BASIC_AUTH_CREDENTIALS"]
   },
+  "ratelimits": [
+    {
+      "name": "REQUEST_RATE_LIMITER",
+      "namespace_id": "731904621",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
+    }
+  ],
   "assets": {
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",

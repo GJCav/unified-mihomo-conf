@@ -9,6 +9,7 @@ import {
 interface Env {
   ASSETS: Fetcher;
   BASIC_AUTH_CREDENTIALS: string;
+  REQUEST_RATE_LIMITER: RateLimit;
 }
 
 const privateHeaders = {
@@ -22,6 +23,16 @@ function unauthorized(): Response {
     headers: {
       ...privateHeaders,
       "www-authenticate": 'Basic realm="Mihomo Compose", charset="UTF-8"',
+    },
+  });
+}
+
+function tooManyRequests(): Response {
+  return new Response("Too Many Requests", {
+    status: 429,
+    headers: {
+      ...privateHeaders,
+      "retry-after": "60",
     },
   });
 }
@@ -45,6 +56,10 @@ export default {
         headers: privateHeaders,
       });
     }
+
+    const clientIp = request.headers.get("cf-connecting-ip") ?? "local";
+    const { success } = await env.REQUEST_RATE_LIMITER.limit({ key: clientIp });
+    if (!success) return tooManyRequests();
 
     if (!isValidCredentialSecret(env.BASIC_AUTH_CREDENTIALS)) {
       console.error("BASIC_AUTH_CREDENTIALS is missing or malformed");

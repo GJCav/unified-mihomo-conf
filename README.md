@@ -91,3 +91,7 @@ authenticated username and password into copied Import URLs using standard
 a password and verify that the importing client supports HTTP URL userinfo. A
 QR code for the same URL is generated entirely in the browser with
 `qrcode.vue`; no Worker CPU is used for QR rendering.
+
+Before authentication, the Worker applies a per-IP rate limit of 60 requests
+per 60 seconds using Cloudflare's Rate Limiting binding. Rejected requests
+receive HTTP 429 with `Retry-After: 60`.
