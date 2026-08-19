@@ -3,6 +3,14 @@
   "name": "unified-mihomo-conf",
   "main": "./server/index.ts",
   "compatibility_date": "2026-08-19",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "mihomo-conf.crychic.uk",
+      "custom_domain": true
+    }
+  ],
   "secrets": {
     "required": ["BASIC_AUTH_CREDENTIALS"]
   },
