@@ -1,0 +1,6 @@
+- name: default
+  type: select
+  url: http://www.gstatic.com/generate_204
+  interval: 3600
+  use:
+    - main-subscription

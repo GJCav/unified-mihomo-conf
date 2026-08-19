@@ -1,0 +1,5 @@
+enable: true
+stack: system
+auto-detect-interface: true
+auto-route: true
+auto-redirect: true

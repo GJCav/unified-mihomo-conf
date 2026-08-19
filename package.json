@@ -1,0 +1,34 @@
+{
+  "name": "unified-mihomo-conf",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@lucide/vue": "1.32.0",
+    "highlight.js": "11.11.1",
+    "mustache": "4.2.0",
+    "qrcode.vue": "3.10.0",
+    "vue": "3.5.41"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.53.0",
+    "@cloudflare/workers-types": "5.20260819.1",
+    "@types/mustache": "4.2.6",
+    "@vitejs/plugin-basic-ssl": "2.3.0",
+    "@vitejs/plugin-vue": "6.0.8",
+    "@vue/compiler-sfc": "3.5.41",
+    "typescript": "6.0.3",
+    "vite": "8.2.1",
+    "vitest": "4.1.11",
+    "vue-tsc": "3.3.10",
+    "wrangler": "4.124.0"
+  }
+}

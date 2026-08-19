@@ -1,0 +1,29 @@
+{{> general}}
+
+{{#dns}}
+dns:
+  {{> dns}}
+{{/dns}}
+
+{{#tun}}
+tun:
+  {{> tun}}
+{{/tun}}
+
+{{#proxy-providers}}
+proxy-providers:
+  {{> proxy-providers}}
+{{/proxy-providers}}
+
+{{#proxy-groups}}
+proxy-groups:
+  {{> proxy-groups}}
+{{/proxy-groups}}
+
+{{#proxies}}
+proxies:
+  {{> proxies}}
+{{/proxies}}
+
+rules:
+  {{> rules}}

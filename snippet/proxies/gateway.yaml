@@ -1,0 +1,4 @@
+- name: default
+  type: http
+  server: "{{{gateway_server}}}"
+  port: 7890

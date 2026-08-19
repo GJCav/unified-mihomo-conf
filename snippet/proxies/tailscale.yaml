@@ -1,0 +1,5 @@
+- name: tailscale
+  type: tailscale
+  hostname: "{{{tailscale_hostname}}}"
+  auth-key: "{{{tailscale_auth_key}}}"
+  control-url: {{{control_url}}}

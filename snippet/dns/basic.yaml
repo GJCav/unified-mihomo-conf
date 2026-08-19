@@ -1,0 +1,13 @@
+# 下面的配置参考 https://github.com/GJCav/myserver/blob/main/mihomo/config.yml
+enable: true
+listen: 0.0.0.0:53
+# 用于解析 nameserver 列表中 DoH/DoT 服务器的域名地址
+default-nameserver:
+  - "119.29.29.29"
+  - "2402:4e00::"
+  - "223.5.5.5"
+  - "2400:3200::1"
+  - "8.8.8.8"
+# 用这个列表中的 DNS/DoH/DoT 服务器解析正在查询的域名地址
+nameserver:
+  - "{{{doh_url}}}"

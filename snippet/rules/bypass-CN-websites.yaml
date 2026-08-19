@@ -1,0 +1,18 @@
+# Bypass China domains
+- GEOIP,CN,DIRECT
+- GEOSITE,geolocation-cn,DIRECT
+
+# Bypass Bing
+- DOMAIN-SUFFIX,bing.com,DIRECT
+
+# Skip CN domains that are not automatically excluded
+- DOMAIN-SUFFIX,mineru.net,DIRECT
+- DOMAIN-SUFFIX,openxlab.org.cn,DIRECT
+- DOMAIN-SUFFIX,gjm20.top,DIRECT
+- DOMAIN-SUFFIX,edu.cn,DIRECT
+- DOMAIN-SUFFIX,wechat.com,DIRECT
+- DOMAIN-SUFFIX,qq.com,DIRECT
+- DOMAIN-SUFFIX,qq.com.cn,DIRECT
+
+# Bypass domains that are non-CN but optimized for CN
+- DOMAIN-SUFFIX,ubuntu.com,DIRECT

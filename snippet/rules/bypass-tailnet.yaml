@@ -1,0 +1,6 @@
+# My domain
+- DOMAIN-SUFFIX,tailscale.gjm20.top,tailscale
+
+# My tailnet
+- IP-CIDR,100.88.0.0/16,tailscale
+- DOMAIN-SUFFIX,tailnet,tailscale

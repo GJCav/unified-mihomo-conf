@@ -1,0 +1,5 @@
+# Use university IP for well-known publishers
+- DOMAIN-SUFFIX,acm.org,DIRECT
+- DOMAIN-SUFFIX,usenix.org,DIRECT
+- DOMAIN-SUFFIX,ieee.org,DIRECT
+- DOMAIN-SUFFIX,dblp.com,DIRECT

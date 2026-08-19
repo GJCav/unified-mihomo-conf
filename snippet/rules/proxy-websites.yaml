@@ -1,0 +1,6 @@
+# Proxy Google
+- DOMAIN-SUFFIX,gstatic.com,default
+- DOMAIN-SUFFIX,googletagmanager.com,default
+- DOMAIN-SUFFIX,google-analytics.com,default
+
+- MATCH,default
