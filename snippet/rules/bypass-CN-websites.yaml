@@ -16,3 +16,4 @@
 
 # Bypass domains that are non-CN but optimized for CN
 - DOMAIN-SUFFIX,ubuntu.com,DIRECT
+- DOMAIN-SUFFIX,crychic.uk,DIRECT
