@@ -101,6 +101,23 @@ describe("renderConfiguration", () => {
     expect(yaml).toContain("  auto-redirect: true");
   });
 
+  it("renders the optional external UI snippet", () => {
+    const yaml = renderConfiguration(
+      new URLSearchParams({
+        g: "g",
+        e: "b",
+        d: "n",
+        t: "n",
+        pp: "m",
+        pg: "m",
+        r: "b",
+        u: "https://example.com/subscription",
+      }),
+    );
+
+    expect(yaml).toContain("external-ui: ui");
+  });
+
   it("composes the laptop TUN route exclusion", () => {
     const yaml = renderConfiguration(
       new URLSearchParams({

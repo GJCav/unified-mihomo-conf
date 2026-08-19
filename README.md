@@ -60,6 +60,7 @@ Worker return rendered YAML instead of the page.
 The compact parameters are:
 
 - `g=b|g`: basic or gateway general settings
+- `e=b`: enable the `external-ui: ui` snippet
 - `d=b|n`: basic DNS or none
 - `t=be|n`: selected TUN snippets (`b` basic, `e` Tailscale route exclusion),
   or none

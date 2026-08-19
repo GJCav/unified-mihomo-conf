@@ -1,5 +1,9 @@
 {{> general}}
 
+{{#external-ui}}
+{{> external-ui}}
+{{/external-ui}}
+
 {{#dns}}
 dns:
   {{> dns}}

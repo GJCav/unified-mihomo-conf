@@ -4,6 +4,7 @@ import skeleton from "../snippet/skeleton.yaml?raw";
 import dnsBasic from "../snippet/dns/basic.yaml?raw";
 import generalBasic from "../snippet/general/basic.yaml?raw";
 import generalGateway from "../snippet/general/gateway.yaml?raw";
+import externalUiBasic from "../snippet/external-ui/basic.yaml?raw";
 import tunBasic from "../snippet/tun/basic.yaml?raw";
 import tunTailscaleRouteExclusion from "../snippet/tun/tailscale-route-exclusion.yaml?raw";
 import proxyGateway from "../snippet/proxies/gateway.yaml?raw";
@@ -18,6 +19,7 @@ import rulesProxyWebsites from "../snippet/rules/proxy-websites.yaml?raw";
 import rulesBypassTailnet from "../snippet/rules/bypass-tailnet.yaml?raw";
 
 type GeneralChoice = "basic" | "gateway";
+type ExternalUiChoice = "basic" | "none";
 type DnsChoice = "basic" | "none";
 type TunChoice = "basic" | "tailscale-route-exclusion";
 type ProviderChoice = "main";
@@ -64,6 +66,7 @@ function compactRules(value: string | null): RulesChoice[] {
 
 interface Plan {
   general: GeneralChoice;
+  externalUi: ExternalUiChoice;
   dns: DnsChoice;
   tun: TunChoice[];
   providers: ProviderChoice[];
@@ -115,6 +118,7 @@ function parsePlan(params: URLSearchParams): Plan {
   if (params.has("g")) {
     return {
       general: choice(params.get("g"), ["b", "g"], "general") === "g" ? "gateway" : "basic",
+      externalUi: params.get("e") === "b" ? "basic" : "none",
       dns: choice(params.get("d") ?? "n", ["b", "n"], "dns") === "b" ? "basic" : "none",
       tun:
         params.get("t") === "n"
@@ -140,6 +144,7 @@ function parsePlan(params: URLSearchParams): Plan {
   );
   return {
     general: legacyChoice(params, "general", ["basic", "gateway"], "basic"),
+    externalUi: legacyChoice(params, "external-ui", ["basic", "none"], "none"),
     dns: legacyChoice(params, "dns", ["basic", "none"], "basic"),
     tun:
       legacyChoice(params, "tun", ["basic", "none"], "none") === "basic"
@@ -218,6 +223,7 @@ export function renderConfiguration(params: URLSearchParams): string {
   }
 
   const values: Record<string, string | boolean> = {
+    "external-ui": plan.externalUi === "basic",
     dns: plan.dns === "basic",
     tun: plan.tun.length > 0,
     "proxy-providers": plan.providers.length > 0,
@@ -251,6 +257,7 @@ export function renderConfiguration(params: URLSearchParams): string {
       }),
     ),
   };
+  if (plan.externalUi === "basic") partials["external-ui"] = externalUiBasic;
   if (plan.dns === "basic") partials.dns = dnsBasic;
   if (plan.tun.length) {
     partials.tun = joinSnippets(

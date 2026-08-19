@@ -8,6 +8,7 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 hljs.registerLanguage("yaml", yaml);
 
 type GeneralChoice = "basic" | "gateway";
+type ExternalUiChoice = "basic" | "none";
 type DnsChoice = "basic" | "none";
 type TunChoice = "basic" | "tailscale-route-exclusion";
 type ProviderChoice = "main";
@@ -24,6 +25,7 @@ type ProfileId = "gateway" | "server" | "laptop" | "ipad";
 
 interface Plan {
   general: GeneralChoice;
+  externalUi: ExternalUiChoice;
   dns: DnsChoice;
   tun: TunChoice[];
   providers: ProviderChoice[];
@@ -72,25 +74,25 @@ const profilePlans: Array<{ id: ProfileId; name: string; info: string; plan: Pla
     id: "gateway",
     name: "Gateway",
     info: "LAN access; connects to the main subscription directly.",
-    plan: { general: "gateway", dns: "none", tun: [], providers: ["main"], groups: ["main"], proxies: [], rules: [...basicRules] },
+    plan: { general: "gateway", externalUi: "basic", dns: "none", tun: [], providers: ["main"], groups: ["main"], proxies: [], rules: [...basicRules] },
   },
   {
     id: "server",
     name: "Normal server",
     info: "Relays unmatched traffic through the gateway.",
-    plan: { general: "basic", dns: "basic", tun: ["basic"], providers: [], groups: [], proxies: ["gateway"], rules: [...basicRules] },
+    plan: { general: "basic", externalUi: "none", dns: "basic", tun: ["basic"], providers: [], groups: [], proxies: ["gateway"], rules: [...basicRules] },
   },
   {
     id: "laptop",
     name: "Laptop",
     info: "Uses the main subscription independently.",
-    plan: { general: "basic", dns: "basic", tun: ["basic", "tailscale-route-exclusion"], providers: ["main"], groups: ["main"], proxies: [], rules: [...basicRules] },
+    plan: { general: "basic", externalUi: "basic", dns: "basic", tun: ["basic", "tailscale-route-exclusion"], providers: ["main"], groups: ["main"], proxies: [], rules: [...basicRules] },
   },
   {
     id: "ipad",
     name: "iPad",
     info: "Uses the main subscription with the Tailscale proxy and rules.",
-    plan: { general: "basic", dns: "basic", tun: ["basic"], providers: ["main"], groups: ["main"], proxies: ["tailscale"], rules: ["bypass-tailnet", ...basicRules] },
+    plan: { general: "basic", externalUi: "none", dns: "basic", tun: ["basic"], providers: ["main"], groups: ["main"], proxies: ["tailscale"], rules: ["bypass-tailnet", ...basicRules] },
   },
 ];
 
@@ -99,6 +101,7 @@ const hasCompactPlan = params.has("g");
 const initialPlan: Plan = hasCompactPlan
   ? {
       general: params.get("g") === "g" ? "gateway" : "basic",
+      externalUi: params.get("e") === "b" ? "basic" : "none",
       dns: params.get("d") === "b" ? "basic" : "none",
       tun: [
         ...(params.get("t")?.includes("b") ? (["basic"] as TunChoice[]) : []),
@@ -220,6 +223,7 @@ function makeUrl(output: boolean, embedCredentials = false) {
     url.password = authContext.value.password;
   }
   url.searchParams.set("g", plan.value.general === "gateway" ? "g" : "b");
+  if (plan.value.externalUi === "basic") url.searchParams.set("e", "b");
   url.searchParams.set("d", plan.value.dns === "basic" ? "b" : "n");
   const tunCodes = plan.value.tun
     .map((item) => (item === "basic" ? "b" : "e"))
@@ -360,6 +364,12 @@ async function copyText(text: string, target: "import" | "yaml") {
             <span><strong>general</strong></span>
             <select v-model="plan.general" @change="markCustom">
               <option value="basic">basic.yaml</option><option value="gateway">gateway.yaml</option>
+            </select>
+          </label>
+          <label class="block-row">
+            <span><strong>external-ui</strong></span>
+            <select v-model="plan.externalUi" @change="markCustom">
+              <option value="basic">basic.yaml</option><option value="none">none</option>
             </select>
           </label>
           <label class="block-row">
