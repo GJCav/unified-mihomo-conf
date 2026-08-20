@@ -15,6 +15,33 @@
 - GEOSITE,tencent,DIRECT
 - GEOSITE,iqiyi,DIRECT
 
+# Bypass Alibaba and JD services
+- GEOSITE,alibaba,DIRECT
+- GEOSITE,jd,DIRECT
+
+# Bypass Alipay services (no dedicated geosite category)
+- DOMAIN-SUFFIX,alipay,DIRECT
+- DOMAIN-SUFFIX,alipay-corp.com,DIRECT
+- DOMAIN-SUFFIX,alipay-eco.com,DIRECT
+- DOMAIN-SUFFIX,alipay-inc.com,DIRECT
+- DOMAIN-SUFFIX,alipay-traffic.com,DIRECT
+- DOMAIN-SUFFIX,alipay.cn,DIRECT
+- DOMAIN-SUFFIX,alipay.com,DIRECT
+- DOMAIN-SUFFIX,alipay.com.cn,DIRECT
+- DOMAIN-SUFFIX,alipay.hk,DIRECT
+- DOMAIN-SUFFIX,alipay.net,DIRECT
+- DOMAIN-SUFFIX,alipaydesign.com,DIRECT
+- DOMAIN-SUFFIX,alipaydev.com,DIRECT
+- DOMAIN-SUFFIX,alipaydns.com,DIRECT
+- DOMAIN-SUFFIX,alipayeshop.com,DIRECT
+- DOMAIN-SUFFIX,alipaylog.com,DIRECT
+- DOMAIN-SUFFIX,alipaymo.com,DIRECT
+- DOMAIN-SUFFIX,alipayobjects.com,DIRECT
+- DOMAIN-SUFFIX,alipayplus.com,DIRECT
+- DOMAIN-SUFFIX,ifaa.org.cn,DIRECT
+- DOMAIN-SUFFIX,luohanacademy.com,DIRECT
+- DOMAIN-SUFFIX,sinopayment.com.cn,DIRECT
+
 # Bypass WeChat services (no dedicated geosite category)
 - DOMAIN,apd-pcdnwxlogin.teg.tencent-cloud.net,DIRECT
 - DOMAIN,btrace.qq.com,DIRECT
