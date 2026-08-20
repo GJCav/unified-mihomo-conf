@@ -12,7 +12,7 @@
     }
   ],
   "secrets": {
-    "required": ["BASIC_AUTH_CREDENTIALS"]
+    "required": ["BASIC_AUTH_CREDENTIALS", "MAIN_SUBSCRIPTION_URL"]
   },
   "ratelimits": [
     {

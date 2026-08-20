@@ -1,1 +1,2 @@
 BASIC_AUTH_CREDENTIALS="username:password"
+MAIN_SUBSCRIPTION_URL="https://provider.example/subscription"

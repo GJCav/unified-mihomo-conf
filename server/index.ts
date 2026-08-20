@@ -9,6 +9,7 @@ import {
 interface Env {
   ASSETS: Fetcher;
   BASIC_AUTH_CREDENTIALS: string;
+  MAIN_SUBSCRIPTION_URL: string;
   REQUEST_RATE_LIMITER: RateLimit;
 }
 
@@ -74,7 +75,10 @@ export default {
     }
 
     if (url.pathname === "/auth-context") {
-      return json(splitCredentials(env.BASIC_AUTH_CREDENTIALS));
+      return json({
+        ...splitCredentials(env.BASIC_AUTH_CREDENTIALS),
+        mainSubscriptionUrl: env.MAIN_SUBSCRIPTION_URL,
+      });
     }
 
     if (url.pathname === "/health") {
@@ -83,7 +87,7 @@ export default {
 
     if (url.pathname === "/config.yaml" || url.searchParams.get("o") === "y") {
       try {
-        const body = renderConfiguration(url.searchParams);
+        const body = renderConfiguration(url.searchParams, env.MAIN_SUBSCRIPTION_URL);
         return new Response(body, {
           headers: {
             "content-type": "text/yaml; charset=utf-8",

@@ -7,6 +7,7 @@ function testEnv(success: boolean) {
     env: {
       ASSETS: { fetch: vi.fn() } as unknown as Fetcher,
       BASIC_AUTH_CREDENTIALS: "alice:secret",
+      MAIN_SUBSCRIPTION_URL: "https://example.com/subscription",
       REQUEST_RATE_LIMITER: { limit } as RateLimit,
     },
     limit,
@@ -34,5 +35,21 @@ describe("request rate limiting", () => {
     const response = await worker.fetch(new Request("https://example.com/"), env);
 
     expect(response.status).toBe(401);
+  });
+
+  it("returns the Worker-managed subscription URL to the authenticated UI", async () => {
+    const { env } = testEnv(true);
+    const response = await worker.fetch(
+      new Request("https://example.com/auth-context", {
+        headers: { authorization: `Basic ${btoa("alice:secret")}` },
+      }),
+      env,
+    );
+
+    expect(await response.json()).toEqual({
+      username: "alice",
+      password: "secret",
+      mainSubscriptionUrl: "https://example.com/subscription",
+    });
   });
 });

@@ -38,6 +38,7 @@ interface Plan {
 interface AuthContext {
   username: string;
   password: string;
+  mainSubscriptionUrl: string;
 }
 
 const basicRules: RulesChoice[] = [
@@ -122,7 +123,6 @@ const initialPlan: Plan = hasCompactPlan
   : structuredClone(profilePlans.find((profile) => profile.id === "laptop")!.plan);
 
 const plan = ref<Plan>(initialPlan);
-const subscriptionUrl = ref(params.get("u") ?? cachedTemplateValues?.subscriptionUrl ?? "");
 const gatewayServer = ref(params.get("s") ?? cachedTemplateValues?.gatewayServer ?? "192.168.55.1");
 const tailscaleHostname = ref(params.get("h") ?? cachedTemplateValues?.tailscaleHostname ?? "ipad-air");
 const tailscaleAuthKey = ref(params.get("k") ?? cachedTemplateValues?.tailscaleAuthKey ?? "");
@@ -136,10 +136,9 @@ const authContext = ref<AuthContext | null>(null);
 const authContextError = ref("");
 
 watch(
-  [subscriptionUrl, gatewayServer, tailscaleHostname, tailscaleAuthKey],
-  ([currentSubscriptionUrl, currentGatewayServer, currentTailscaleHostname, currentTailscaleAuthKey]) => {
+  [gatewayServer, tailscaleHostname, tailscaleAuthKey],
+  ([currentGatewayServer, currentTailscaleHostname, currentTailscaleAuthKey]) => {
     saveTemplateValues({
-      subscriptionUrl: currentSubscriptionUrl,
       gatewayServer: currentGatewayServer,
       tailscaleHostname: currentTailscaleHostname,
       tailscaleAuthKey: currentTailscaleAuthKey,
@@ -202,15 +201,6 @@ function dropRule(target: RulesChoice) {
   markCustom();
 }
 
-function isHttpUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 const issues = computed(() => {
   const result: string[] = [];
   const hasProvider = plan.value.providers.includes("main");
@@ -224,7 +214,6 @@ const issues = computed(() => {
   if (plan.value.rules.includes("bypass-tailnet") && !hasTailscale) result.push("Tailnet bypass rules require the Tailscale proxy.");
   if (plan.value.tun.includes("tailscale-route-exclusion") && !plan.value.tun.includes("basic")) result.push("Tailscale route exclusion requires the basic TUN snippet.");
   if (plan.value.rules.length === 0) result.push("Select at least one rules snippet.");
-  if (hasProvider && !isHttpUrl(subscriptionUrl.value)) result.push("Enter a valid subscription URL.");
   if (hasGateway && !gatewayServer.value.trim()) result.push("Enter the gateway address.");
   if (hasTailscale && !tailscaleHostname.value.trim()) result.push("Enter a Tailscale hostname.");
   if (hasTailscale && !tailscaleAuthKey.value.trim()) result.push("Enter a Tailscale auth key.");
@@ -258,7 +247,6 @@ function makeUrl(output: boolean, embedCredentials = false) {
   };
   const ruleCodes = plan.value.rules.map((item) => codes[item]).join("");
   if (ruleCodes) url.searchParams.set("r", ruleCodes);
-  if (plan.value.providers.includes("main")) url.searchParams.set("u", subscriptionUrl.value.trim());
   if (plan.value.proxies.includes("gateway")) url.searchParams.set("s", gatewayServer.value.trim());
   if (plan.value.proxies.includes("tailscale")) {
     url.searchParams.set("h", tailscaleHostname.value.trim());
@@ -449,7 +437,7 @@ async function copyText(text: string, target: "import" | "yaml") {
         <div class="placeholder-section">
           <h3>Template values</h3>
           <label v-if="plan.providers.includes('main')" class="input-row">
-            <span>main_subscription_url</span><input v-model="subscriptionUrl" type="url" placeholder="https://provider.example/subscription" autocomplete="off" />
+            <span>main_subscription_url</span><input :value="authContext?.mainSubscriptionUrl ?? ''" type="url" placeholder="Loading Worker secret…" readonly />
           </label>
           <label v-if="plan.proxies.includes('gateway')" class="input-row">
             <span>gateway_server</span><input v-model="gatewayServer" type="text" placeholder="192.168.55.1" autocomplete="off" />

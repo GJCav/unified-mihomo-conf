@@ -3,7 +3,6 @@ export const TEMPLATE_VALUE_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const CACHE_KEY = "mihomo-compose:template-values:v1";
 
 export interface TemplateValues {
-  subscriptionUrl: string;
   gatewayServer: string;
   tailscaleHostname: string;
   tailscaleAuthKey: string;
@@ -24,7 +23,6 @@ function isTemplateValues(value: unknown): value is TemplateValues {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
   return (
-    typeof candidate.subscriptionUrl === "string" &&
     typeof candidate.gatewayServer === "string" &&
     typeof candidate.tailscaleHostname === "string" &&
     typeof candidate.tailscaleAuthKey === "string"

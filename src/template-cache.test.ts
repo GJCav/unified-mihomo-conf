@@ -23,7 +23,6 @@ class MemoryStorage {
 }
 
 const values: TemplateValues = {
-  subscriptionUrl: "https://example.com/subscription",
   gatewayServer: "192.168.55.1",
   tailscaleHostname: "ipad-air",
   tailscaleAuthKey: "test-key",

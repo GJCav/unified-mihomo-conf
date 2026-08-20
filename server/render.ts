@@ -191,7 +191,10 @@ function joinSnippets(items: string[]): string {
   return items.map((item) => item.trim()).join("\n");
 }
 
-export function renderConfiguration(params: URLSearchParams): string {
+export function renderConfiguration(
+  params: URLSearchParams,
+  mainSubscriptionUrl?: string,
+): string {
   const plan = parsePlan(params);
   const hasMainProvider = plan.providers.includes("main");
   const hasMainGroup = plan.groups.includes("main");
@@ -233,7 +236,7 @@ export function renderConfiguration(params: URLSearchParams): string {
 
   if (hasMainProvider) {
     values.main_subscription_url = escapeQuoted(
-      requireHttpUrl(required(params, "u", "main_subscription_url"), "u"),
+      requireHttpUrl(mainSubscriptionUrl?.trim() ?? "", "MAIN_SUBSCRIPTION_URL"),
     );
   }
   if (hasGateway) {

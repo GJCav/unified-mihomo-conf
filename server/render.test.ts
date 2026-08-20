@@ -29,10 +29,10 @@ describe("renderConfiguration", () => {
         "proxy-groups": "main",
         proxies: "tailscale",
         rules: "tailscale",
-        main_subscription_url: "https://example.com/sub?token=test&format=yaml",
         tailscale_hostname: "ipad-air",
         tailscale_auth_key: "test-key",
       }),
+      "https://example.com/sub?token=test&format=yaml",
     );
 
     expect(yaml).toContain(
@@ -62,7 +62,6 @@ describe("renderConfiguration", () => {
           "proxy-groups": "main",
           proxies: "none",
           rules: "tailscale",
-          main_subscription_url: "https://example.com/subscription",
         }),
       ),
     ).toThrow(PlanError);
@@ -111,8 +110,8 @@ describe("renderConfiguration", () => {
         pp: "m",
         pg: "m",
         r: "b",
-        u: "https://example.com/subscription",
       }),
+      "https://example.com/subscription",
     );
 
     expect(yaml).toContain("external-ui: ui");
@@ -162,14 +161,32 @@ describe("renderConfiguration", () => {
         pg: "m",
         p: "t",
         r: "bt",
-        u: "https://example.com/subscription",
         h: "ipad-air",
         k: "test-key",
       }),
+      "https://example.com/subscription",
     );
 
     expect(yaml.indexOf("100.64.0.0/10,DIRECT")).toBeLessThan(
       yaml.indexOf("100.88.0.0/16,tailscale"),
     );
+  });
+
+  it("uses the Worker secret and ignores a legacy URL override", () => {
+    const yaml = renderConfiguration(
+      new URLSearchParams({
+        g: "g",
+        d: "n",
+        t: "n",
+        pp: "m",
+        pg: "m",
+        r: "b",
+        u: "https://attacker.example/subscription",
+      }),
+      "https://provider.example/subscription",
+    );
+
+    expect(yaml).toContain('url: "https://provider.example/subscription"');
+    expect(yaml).not.toContain("attacker.example");
   });
 });

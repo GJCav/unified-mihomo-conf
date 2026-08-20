@@ -23,9 +23,8 @@ npm run build
 
 ## Deploy
 
-The Worker requires one encrypted secret named `BASIC_AUTH_CREDENTIALS`. Its
-value is the Basic Authentication username and password joined by the first
-colon:
+The Worker requires two encrypted secrets. `BASIC_AUTH_CREDENTIALS` is the
+Basic Authentication username and password joined by the first colon:
 
 ```text
 username:password
@@ -35,7 +34,12 @@ Set it interactively so the value is not written to shell history or source:
 
 ```sh
 npx wrangler secret put BASIC_AUTH_CREDENTIALS
+npx wrangler secret put MAIN_SUBSCRIPTION_URL
 ```
+
+`MAIN_SUBSCRIPTION_URL` must contain the complete HTTP or HTTPS subscription
+URL. Updating it deploys a new Worker version immediately; device import URLs
+do not need to change.
 
 For local Worker development, copy `.dev.vars.example` to `.dev.vars` and
 replace its placeholder. `.dev.vars` is ignored by Git. `npm run dev` uses
@@ -71,8 +75,7 @@ The compact parameters are:
   `t` Tailnet bypass, `i` special IPs, `c` CN websites, `a` academic publishers,
   `h` THU IP, and `w` proxied websites. Legacy code `b` expands to the five
   former basic-rule snippets.
-- `u`, `s`, `h`, `k`: subscription URL, gateway server, Tailscale hostname,
-  and Tailscale auth key
+- `s`, `h`, `k`: gateway server, Tailscale hostname, and Tailscale auth key
 - `o=y`: return YAML
 
 Selection parameters are compact lists, so future snippets can receive another
@@ -80,9 +83,10 @@ single-character code without changing the schema. Required values and
 incompatible combinations are rejected with HTTP 400. Legacy `/config.yaml`
 URLs remain accepted.
 
-The resulting import URL can contain subscription credentials or a Tailscale
-auth key. Treat the complete URL as a secret and distribute it only through the
-intended secure channel.
+The main subscription URL comes from the required `MAIN_SUBSCRIPTION_URL`
+Worker secret. Legacy `u` parameters are ignored. The resulting import URL can
+contain a Tailscale auth key, so treat it as a secret and distribute it only
+through the intended secure channel.
 
 All routes—including static assets, `/health`, and rendered YAML—require HTTPS
 and the correct HTTP Basic Authorization header. The compositor embeds the
@@ -92,9 +96,10 @@ a password and verify that the importing client supports HTTP URL userinfo. A
 QR code for the same URL is generated entirely in the browser with
 `qrcode.vue`; no Worker CPU is used for QR rendering.
 
-The browser remembers the latest template values in origin-scoped local
-storage for 30 days. Values supplied in a page URL take precedence, and expired
-or malformed cache entries are removed automatically.
+The browser remembers the latest editable template values in origin-scoped
+local storage for 30 days. The Worker-managed subscription URL is displayed
+read-only and is not cached. Values supplied in a page URL take precedence,
+and expired or malformed cache entries are removed automatically.
 
 Before authentication, the Worker applies a per-IP rate limit of 60 requests
 per 60 seconds using Cloudflare's Rate Limiting binding. Rejected requests
