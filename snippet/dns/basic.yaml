@@ -11,3 +11,5 @@ default-nameserver:
 # 用这个列表中的 DNS/DoH/DoT 服务器解析正在查询的域名地址
 nameserver:
   - "{{{doh_url}}}"
+nameserver-policy:
+  '+.tailnet': ts://tailscale
