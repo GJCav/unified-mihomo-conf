@@ -5,6 +5,9 @@
 # Bypass Bing
 - DOMAIN-SUFFIX,bing.com,DIRECT
 
+# Bypass Xiaomi services
+- GEOSITE,xiaomi,DIRECT
+
 # Skip CN domains that are not automatically excluded
 - DOMAIN-SUFFIX,mineru.net,DIRECT
 - DOMAIN-SUFFIX,openxlab.org.cn,DIRECT
