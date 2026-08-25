@@ -5,11 +5,11 @@ for building machine-specific Mihomo/Clash configurations from shared YAML
 snippets. The browser selects a profile or individual snippets, while the
 Worker renders a complete YAML configuration that Mihomo can import directly.
 
-This document records the project state and design decisions as of 2026-08-20.
+This document records the project state and design decisions as of 2026-08-25.
 
 ## Network model
 
-The machines have four distinct roles:
+The machines have five distinct roles:
 
 ```text
 Gateway       -> main proxy subscription
@@ -18,6 +18,8 @@ Laptop        -> main proxy subscription
                  local Tailscale process (excluded from Mihomo TUN)
 iPad          -> main proxy subscription
                  Mihomo Tailscale proxy for Tailnet traffic
+Phone         -> main proxy subscription
+                 Mihomo Tailscale proxy and Tailnet DNS policy
 ```
 
 - The gateway exposes Mihomo to the LAN and connects to subscription proxies
@@ -26,7 +28,10 @@ iPad          -> main proxy subscription
 - The laptop uses TUN mode and connects to subscription proxies independently.
   Its separate native Tailscale process owns Tailnet routes.
 - The iPad uses TUN mode and connects to subscription proxies independently.
-  Mihomo itself provides its Tailscale connection.
+  Mihomo itself provides its Tailscale connection, but its client does not use
+  the Tailnet DNS policy.
+- The phone uses the same proxy/TUN arrangement as the iPad, with the
+  additional Tailnet DNS policy required by its client.
 - The private Tailnet is `100.88.0.0/16`.
 - IPv6 is intentionally enabled. THU IPv4 and IPv6 networks are handled by
   ordered routing rules rather than TUN route exclusions.
@@ -44,6 +49,7 @@ simply updates the same composable editor state.
 | Normal Server | Gateway HTTP proxy | Basic + route exclusion | Excluded for native Tailscale | Disabled |
 | Laptop | Main subscription | Basic + route exclusion | Excluded for native Tailscale | Enabled |
 | iPad | Main subscription | Basic | Mihomo Tailscale proxy + bypass rule | Disabled |
+| Phone | Main subscription | Basic | Mihomo Tailscale proxy + DNS policy | Disabled |
 
 The gateway and laptop must continue to render `external-ui: ui`. The normal
 server enables `tun/tailscale-route-exclusion.yaml` by default.
@@ -56,8 +62,8 @@ The shared default rule order is:
 4. THU IPv4/IPv6 bypasses
 5. Proxy website rules and final `MATCH`
 
-The iPad prepends the Tailnet bypass rule. Rule order is significant and is
-preserved by the sortable editor.
+The iPad and phone prepend the Tailnet bypass rule. Rule order is significant
+and is preserved by the sortable editor.
 
 ## Composition model
 
@@ -71,7 +77,7 @@ snippet/
   skeleton.yaml
   general/          basic, gateway
   external-ui/      basic
-  dns/              basic
+  dns/              basic, tailnet
   tun/              basic, tailscale-route-exclusion
   proxy-providers/  main
   proxy-groups/     main
@@ -79,9 +85,11 @@ snippet/
   rules/            independent, order-sensitive rule sets
 ```
 
-`general`, `external-ui`, and `dns` are single-choice parts. TUN snippets,
-providers, groups, proxies, and rules are independently composable; rules are
-also sortable. Mustache provides the few required runtime placeholders:
+`general`, `external-ui`, and `dns` are single-choice parts. The `tailnet` DNS
+choice composes the shared `basic` DNS fragment with its small policy overlay.
+TUN snippets, providers, groups, proxies, and rules are independently
+composable; rules are also sortable. Mustache provides the few required
+runtime placeholders:
 
 - `gateway_server` for the normal-server gateway proxy
 - `tailscale_hostname` and `tailscale_auth_key` for the Mihomo Tailscale proxy
@@ -112,7 +120,8 @@ The compact parameters are:
 
 - `g=b|g`: basic or gateway general settings
 - `e=b`: enable `external-ui: ui`
-- `d=b|n`: basic DNS or none
+- `d=b|t|n`: basic DNS, basic DNS plus the Tailnet policy, or none. Existing
+  iPad URLs use `d=b` and remain unchanged; the phone profile uses `d=t`.
 - `t=be|n`: TUN snippets (`b` basic, `e` Tailnet route exclusion), or none
 - `pp=m`: main provider
 - `pg=m`: main proxy group

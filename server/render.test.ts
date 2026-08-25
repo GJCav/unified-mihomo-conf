@@ -20,6 +20,30 @@ describe("renderConfiguration", () => {
     expect(yaml).not.toContain("proxy-providers:");
   });
 
+  it("keeps iPad DNS basic and adds the Tailnet DNS policy only for phone plans", () => {
+    const common = {
+      g: "b",
+      pp: "m",
+      pg: "m",
+      p: "t",
+      r: "tb",
+      h: "phone",
+      k: "test-key",
+    };
+    const ipadYaml = renderConfiguration(
+      new URLSearchParams({ ...common, d: "b" }),
+      "https://example.com/subscription",
+    );
+    const phoneYaml = renderConfiguration(
+      new URLSearchParams({ ...common, d: "t" }),
+      "https://example.com/subscription",
+    );
+
+    expect(ipadYaml).not.toContain("nameserver-policy:");
+    expect(phoneYaml).toContain("nameserver-policy:");
+    expect(phoneYaml).toContain("'+.tailnet': ts://tailscale");
+  });
+
   it("puts Tailnet rules before the common CGNAT bypass", () => {
     const yaml = renderConfiguration(
       new URLSearchParams({

@@ -2,6 +2,7 @@ import Mustache from "mustache";
 
 import skeleton from "../snippet/skeleton.yaml?raw";
 import dnsBasic from "../snippet/dns/basic.yaml?raw";
+import dnsTailnet from "../snippet/dns/tailnet.yaml?raw";
 import generalBasic from "../snippet/general/basic.yaml?raw";
 import generalGateway from "../snippet/general/gateway.yaml?raw";
 import externalUiBasic from "../snippet/external-ui/basic.yaml?raw";
@@ -20,7 +21,7 @@ import rulesBypassTailnet from "../snippet/rules/bypass-tailnet.yaml?raw";
 
 type GeneralChoice = "basic" | "gateway";
 type ExternalUiChoice = "basic" | "none";
-type DnsChoice = "basic" | "none";
+type DnsChoice = "basic" | "tailnet" | "none";
 type TunChoice = "basic" | "tailscale-route-exclusion";
 type ProviderChoice = "main";
 type GroupChoice = "main";
@@ -119,7 +120,11 @@ function parsePlan(params: URLSearchParams): Plan {
     return {
       general: choice(params.get("g"), ["b", "g"], "general") === "g" ? "gateway" : "basic",
       externalUi: params.get("e") === "b" ? "basic" : "none",
-      dns: choice(params.get("d") ?? "n", ["b", "n"], "dns") === "b" ? "basic" : "none",
+      dns: choice(params.get("d") ?? "n", ["b", "t", "n"], "dns") === "b"
+        ? "basic"
+        : params.get("d") === "t"
+          ? "tailnet"
+          : "none",
       tun:
         params.get("t") === "n"
           ? []
@@ -227,7 +232,7 @@ export function renderConfiguration(
 
   const values: Record<string, string | boolean> = {
     "external-ui": plan.externalUi === "basic",
-    dns: plan.dns === "basic",
+    dns: plan.dns !== "none",
     tun: plan.tun.length > 0,
     "proxy-providers": plan.providers.length > 0,
     "proxy-groups": plan.groups.length > 0,
@@ -262,6 +267,7 @@ export function renderConfiguration(
   };
   if (plan.externalUi === "basic") partials["external-ui"] = externalUiBasic;
   if (plan.dns === "basic") partials.dns = dnsBasic;
+  if (plan.dns === "tailnet") partials.dns = joinSnippets([dnsBasic, dnsTailnet]);
   if (plan.tun.length) {
     partials.tun = joinSnippets(
       plan.tun.map((item) =>

@@ -10,7 +10,7 @@ hljs.registerLanguage("yaml", yaml);
 
 type GeneralChoice = "basic" | "gateway";
 type ExternalUiChoice = "basic" | "none";
-type DnsChoice = "basic" | "none";
+type DnsChoice = "basic" | "tailnet" | "none";
 type TunChoice = "basic" | "tailscale-route-exclusion";
 type ProviderChoice = "main";
 type GroupChoice = "main";
@@ -22,7 +22,7 @@ type RulesChoice =
   | "bypass-academic-publishers"
   | "bypass-THU-IP"
   | "bypass-tailnet";
-type ProfileId = "gateway" | "server" | "laptop" | "ipad";
+type ProfileId = "gateway" | "server" | "laptop" | "ipad" | "phone";
 
 interface Plan {
   general: GeneralChoice;
@@ -96,6 +96,12 @@ const profilePlans: Array<{ id: ProfileId; name: string; info: string; plan: Pla
     info: "Uses the main subscription with the Tailscale proxy and rules.",
     plan: { general: "basic", externalUi: "none", dns: "basic", tun: ["basic"], providers: ["main"], groups: ["main"], proxies: ["tailscale"], rules: ["bypass-tailnet", ...basicRules] },
   },
+  {
+    id: "phone",
+    name: "Phone",
+    info: "Uses the main subscription with Tailscale DNS resolution.",
+    plan: { general: "basic", externalUi: "none", dns: "tailnet", tun: ["basic"], providers: ["main"], groups: ["main"], proxies: ["tailscale"], rules: ["bypass-tailnet", ...basicRules] },
+  },
 ];
 
 const params = new URLSearchParams(window.location.search);
@@ -105,7 +111,7 @@ const initialPlan: Plan = hasCompactPlan
   ? {
       general: params.get("g") === "g" ? "gateway" : "basic",
       externalUi: params.get("e") === "b" ? "basic" : "none",
-      dns: params.get("d") === "b" ? "basic" : "none",
+      dns: params.get("d") === "t" ? "tailnet" : params.get("d") === "b" ? "basic" : "none",
       tun: [
         ...(params.get("t")?.includes("b") ? (["basic"] as TunChoice[]) : []),
         ...(params.get("t")?.includes("e")
@@ -228,7 +234,7 @@ function makeUrl(output: boolean, embedCredentials = false) {
   }
   url.searchParams.set("g", plan.value.general === "gateway" ? "g" : "b");
   if (plan.value.externalUi === "basic") url.searchParams.set("e", "b");
-  url.searchParams.set("d", plan.value.dns === "basic" ? "b" : "n");
+  url.searchParams.set("d", plan.value.dns === "basic" ? "b" : plan.value.dns === "tailnet" ? "t" : "n");
   const tunCodes = plan.value.tun
     .map((item) => (item === "basic" ? "b" : "e"))
     .join("");
@@ -378,7 +384,7 @@ async function copyText(text: string, target: "import" | "yaml") {
           <label class="block-row">
             <span><strong>dns</strong></span>
             <select v-model="plan.dns" @change="markCustom">
-              <option value="basic">basic.yaml</option><option value="none">none</option>
+              <option value="basic">basic.yaml</option><option value="tailnet">tailnet.yaml</option><option value="none">none</option>
             </select>
           </label>
           <fieldset class="multi-block">
