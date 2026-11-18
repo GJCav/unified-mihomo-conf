@@ -4,6 +4,7 @@
 
 # Bypass Bing
 - DOMAIN-SUFFIX,bing.com,DIRECT
+- DOMAIN-SUFFIX,bing.cn,DIRECT
 
 # Bypass Xiaomi services
 - GEOSITE,xiaomi,DIRECT
@@ -79,9 +80,12 @@
 - DOMAIN-SUFFIX,openxlab.org.cn,DIRECT
 - DOMAIN-SUFFIX,gjm20.top,DIRECT
 - DOMAIN-SUFFIX,edu.cn,DIRECT
+- DOMAIN-SUFFIX,wechat.com,DIRECT
 - DOMAIN-SUFFIX,qq.com,DIRECT
 - DOMAIN-SUFFIX,qq.com.cn,DIRECT
+- DOMAIN-SUFFIX,servicewechat.com,DIRECT
 
 # Bypass domains that are non-CN but optimized for CN
 - DOMAIN-SUFFIX,ubuntu.com,DIRECT
 - DOMAIN-SUFFIX,crychic.uk,DIRECT
+
