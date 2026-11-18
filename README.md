@@ -225,14 +225,26 @@ into tracked snippets.
 
 ## Deployment and maintenance
 
-Authenticate Wrangler with the intended Cloudflare account, then set secrets
-interactively so they do not enter shell history or source control:
+GitHub Actions tests and deploys each push to `main`. Set the two deployment
+secrets under **Settings → Secrets and variables → Actions → Repository secrets**.
+The Worker reads its two runtime secrets from Cloudflare.
+
+| Secret | Where to set it | Value and purpose |
+| --- | --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions | ID of the Cloudflare account that owns the Worker. |
+| `CLOUDFLARE_API_TOKEN` | GitHub Actions | API token with permission to upload and deploy versions of the existing `unified-mihomo-conf` Worker. CI leaves domains and routes in place. |
+| `BASIC_AUTH_CREDENTIALS` | Cloudflare Worker | `username:password` for access to the web UI and generated YAML. |
+| `MAIN_SUBSCRIPTION_URL` | Cloudflare Worker | Full HTTP or HTTPS URL of the upstream proxy subscription. |
+
+To set or rotate the Worker secrets, authenticate Wrangler with the intended
+Cloudflare account and enter the values interactively:
 
 ```sh
 npx wrangler secret put BASIC_AUTH_CREDENTIALS
 npx wrangler secret put MAIN_SUBSCRIPTION_URL
-npm run deploy
 ```
+
+To deploy manually, run `npm run deploy`.
 
 Updating `MAIN_SUBSCRIPTION_URL` through Wrangler deploys a new Worker version;
 existing device URLs remain valid. The normal application deployment bundles
