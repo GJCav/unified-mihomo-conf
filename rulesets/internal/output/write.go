@@ -2,23 +2,41 @@ package output
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"compose/rulesets/internal/build"
 )
 
-func Write(ctx context.Context, result build.Result, dir, binary string) error {
+type BuildInfo struct {
+	Repository string `json:"repository"`
+	Commit     string `json:"commit"`
+}
+type Stats struct {
+	SchemaVersion int                       `json:"schema_version"`
+	GeneratedAt   time.Time                 `json:"generated_at"`
+	Build         *BuildInfo                `json:"build,omitempty"`
+	Priority      []string                  `json:"priority"`
+	Fallback      string                    `json:"fallback"`
+	Upstreams     map[string]build.Upstream `json:"upstreams"`
+	LicenseFiles  []string                  `json:"license_files"`
+	RuleSets      []build.RuleSet           `json:"rulesets"`
+}
+
+func Write(ctx context.Context, result build.Result, dir, binary string, stats Stats) error {
 
 	temp, err := os.MkdirTemp("", "rule-text-")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(temp)
-	for _, set := range result.RuleSets {
+	for i := range result.RuleSets {
+		set := &result.RuleSets[i]
 		custom := strings.HasPrefix(set.Name, "custom-")
 		for _, kind := range []string{"domain", "ipcidr", "classical"} {
 			lines := []string(set.Rules.Domains)
@@ -41,29 +59,38 @@ func Write(ctx context.Context, result build.Result, dir, binary string) error {
 					return fmt.Errorf("%s: %w", stem, err)
 				}
 			}
+			format := "mrs"
 			if custom || kind == "classical" {
+				format = "txt"
 				if err := os.WriteFile(filepath.Join(temp, stem+".txt"), []byte(payload), 0644); err != nil {
 					return err
 				}
-				continue
+			} else {
+				path := filepath.Join(temp, stem+".input")
+				if err := os.WriteFile(path, []byte(payload), 0600); err != nil {
+					return err
+				}
+				target := filepath.Join(temp, stem+".mrs")
+				cli := mihomoCLI(binary)
+				if kind == "domain" {
+					err = cli.convertDomain(ctx, path, target, set.Rules.Domains)
+				} else {
+					err = cli.convertIPCIDR(ctx, path, target, set.Rules.Prefixes)
+				}
+				if err != nil {
+					return fmt.Errorf("%s: %w", stem, err)
+				}
 			}
-			path := filepath.Join(temp, stem+".input")
-			if err := os.WriteFile(path, []byte(payload), 0600); err != nil {
+			name := stem + "." + format
+			file, err := os.ReadFile(filepath.Join(temp, name))
+			if err != nil {
 				return err
 			}
-			target := filepath.Join(temp, stem+".mrs")
-			cli := mihomoCLI(binary)
-			if kind == "domain" {
-				err = cli.convertDomain(ctx, path, target, set.Rules.Domains)
-			} else {
-				err = cli.convertIPCIDR(ctx, path, target, set.Rules.Prefixes)
-			}
-			if err != nil {
-				return fmt.Errorf("%s: %w", stem, err)
-			}
+			set.Files = append(set.Files, build.Artifact{Name: name, Behavior: kind, Format: format, Count: len(lines), Bytes: len(file), SHA256: fmt.Sprintf("%x", sha256.Sum256(file))})
 		}
 	}
-	data, err := json.MarshalIndent(result.RuleSets, "", "  ")
+	stats.RuleSets = result.RuleSets
+	data, err := json.MarshalIndent(stats, "", "  ")
 	if err != nil {
 		return err
 	}

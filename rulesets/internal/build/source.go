@@ -3,6 +3,7 @@ package build
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/csv"
 	"fmt"
 	"iter"
@@ -23,8 +24,9 @@ import (
 const maxSourceBytes = 64 << 20
 
 type FetchMetadata struct {
-	URL   string `json:"url"`
-	Bytes int64  `json:"bytes"`
+	SHA256 string `json:"sha256"`
+	URL    string `json:"url"`
+	Bytes  int64  `json:"bytes"`
 }
 
 type fetchedDoc struct {
@@ -93,7 +95,7 @@ func (l *sourceLoader) fetchOnce(ctx context.Context, url string) ([]byte, Fetch
 	if len(payload) == 0 || len(payload) > maxSourceBytes {
 		return nil, FetchMetadata{}, fmt.Errorf("invalid response size %d", len(payload))
 	}
-	return payload, FetchMetadata{URL: url, Bytes: int64(len(payload))}, nil
+	return payload, FetchMetadata{SHA256: fmt.Sprintf("%x", sha256.Sum256(payload)), URL: url, Bytes: int64(len(payload))}, nil
 }
 
 func (l *sourceLoader) load(ctx context.Context, baseDir string, src SourceConfig) (rules.Collection, SourceReport, error) {

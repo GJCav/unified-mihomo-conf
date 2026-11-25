@@ -4,6 +4,9 @@ import (
 	"compose/rulesets/internal/build"
 	"compose/rulesets/internal/rules"
 	"context"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,7 +36,7 @@ func TestClassicalValidation(t *testing.T) {
 			}
 			dir := t.TempDir()
 			result := build.Result{RuleSets: []build.RuleSet{{Name: "custom-direct"}, {Name: "custom-proxy", Rules: rules.Collection{Classical: tc.lines}}}}
-			err := Write(context.Background(), result, dir, bin)
+			err := Write(context.Background(), result, dir, bin, Stats{})
 			if tc.wantErr != "" {
 				if err == nil || !strings.Contains(err.Error(), tc.wantErr) {
 					t.Fatalf("expected %q, got %v", tc.wantErr, err)
@@ -51,6 +54,19 @@ func TestClassicalValidation(t *testing.T) {
 			if err != nil || string(data) != strings.Join(tc.lines, "\n")+"\n" {
 				t.Fatalf("unexpected output %q, %v", data, err)
 			}
+			statsBytes, err := os.ReadFile(filepath.Join(dir, "stats.json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var stats Stats
+			if err = json.Unmarshal(statsBytes, &stats); err != nil {
+				t.Fatal(err)
+			}
+			artifact := stats.RuleSets[1].Files[1]
+			if artifact.Name != "custom-proxy.classical.txt" || artifact.Count != len(tc.lines) || artifact.Bytes != len(data) || artifact.SHA256 != fmt.Sprintf("%x", sha256.Sum256(data)) {
+				t.Fatalf("invalid file descriptor: %+v", artifact)
+			}
+
 		})
 	}
 }

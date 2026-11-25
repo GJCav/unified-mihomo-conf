@@ -1,7 +1,10 @@
 package build
 
 import (
+	"context"
 	"net/netip"
+	"os"
+	"path/filepath"
 
 	"strings"
 	"testing"
@@ -105,5 +108,20 @@ func TestProjectTailnetAndDirectExclusions(t *testing.T) {
 	diff := later.Excluding(earlier)
 	if diff.Contains(netip.MustParseAddr("100.88.1.1")) || !diff.Contains(netip.MustParseAddr("100.89.1.1")) {
 		t.Fatal("incorrect tailnet subtraction")
+	}
+}
+
+func TestGroupAttribution(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "domains.txt"), []byte("example.org\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	result, err := Run(context.Background(), Config{BaseDir: dir, RuleSets: []RuleSetConfig{{Name: "local", Description: "Example", Sources: []SourceConfig{{Name: "example", Kind: "domain-file", Path: "domains.txt", Upstream: "local"}}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := result.RuleSets[0]
+	if g.Description != "Example" || g.Sources[0].Upstream != "local" || g.Excluded == nil {
+		t.Fatalf("missing group metadata: %+v", g)
 	}
 }

@@ -21,6 +21,7 @@ func (c Counts) Total() int {
 }
 
 type SourceReport struct {
+	Upstream         string          `json:"upstream"`
 	Name             string          `json:"name"`
 	Kind             string          `json:"kind"`
 	InputRules       int             `json:"input_rules"`
@@ -30,14 +31,24 @@ type SourceReport struct {
 	OmittedAsCovered int             `json:"omitted_as_covered,omitempty"`
 }
 
+type Artifact struct {
+	Name     string `json:"name"`
+	Behavior string `json:"behavior"`
+	Format   string `json:"format"`
+	Count    int    `json:"count"`
+	Bytes    int    `json:"bytes"`
+	SHA256   string `json:"sha256"`
+}
 type RuleSet struct {
+	Description        string           `json:"description"`
+	Files              []Artifact       `json:"files"`
 	Name               string           `json:"name"`
 	Rules              rules.Collection `json:"-"`
 	Sources            []SourceReport   `json:"sources"`
 	BeforeOptimization Counts           `json:"before_optimization"`
 	AfterOptimization  Counts           `json:"after_optimization"`
 	Final              Counts           `json:"final"`
-	Excluded           []string         `json:"excluded,omitempty"`
+	Excluded           []string         `json:"excluded"`
 }
 
 type Result struct {
@@ -54,7 +65,7 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	}
 
 	for _, configured := range cfg.RuleSets {
-		built := RuleSet{Name: configured.Name, Excluded: slices.Clone(configured.Exclude)}
+		built := RuleSet{Name: configured.Name, Description: configured.Description, Excluded: append([]string{}, configured.Exclude...)}
 		var aggregate rules.Collection
 		for _, src := range configured.Sources {
 			loaded, report, err := loader.load(ctx, cfg.BaseDir, src)
@@ -71,6 +82,7 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 			if src.OptionalIfCovered {
 				loaded = loaded.Excluding(aggregate)
 			}
+			report.Upstream = src.Upstream
 			report.Accepted = counts(loaded)
 			report.OmittedAsCovered = beforeOptional.Total() - report.Accepted.Total()
 			built.Sources = append(built.Sources, report)

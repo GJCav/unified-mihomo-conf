@@ -15,6 +15,7 @@ Logs are append-only: correct an earlier entry with a new one.
 | Change | Status |
 | --- | --- |
 | [静态骨架 + 动态规则集](2026-11-25-ruleset-redesign/plan.md) | in review (cutover started) |
+| [Unified Mihomo Config — Public Portal, Legacy Consolidation & README](2026-11-25-public-portal-and-cleanup/plan.md) | done |
 
 Status is one of: planning, approved, implementing, in review, done, dropped.
 The lead keeps this table current.

@@ -1,7 +1,8 @@
 # Agent guide
 
 Mihomo Compose is a Cloudflare Worker plus Vue 3 app that renders Mihomo/Clash
-YAML from the fragments in `snippet/`. [README.md](README.md) describes the
+YAML from `profiles/`, publishes rules compiled by `rulesets/`, and preserves
+frozen v1 imports under `server/legacy/`. [README.md](README.md) describes the
 network model, URL schema, security model, and design decisions. Read it before
 proposing or changing anything. This file covers who does what.
 
@@ -12,14 +13,14 @@ A delegated task names your role near the top: `Role: planner`,
 this `Role:` line decides. Read that role's section below,
 [Project rules](#project-rules), and the change directory your task names.
 
-Without a `Role:` line, you are talking to the user directly. If you are Claude
-Opus 5.5, you are the lead. If you are another model, do what the user asks and
+Without a `Role:` line, you are talking to the user directly. If you are Gemini
+4 Carbon, you are the lead. If you are another model, do what the user asks and
 follow the project rules.
 
 | Role | Model | Owns | Must not |
 | --- | --- | --- | --- |
-| Lead | Claude Opus 5.5 (medium) | Requirements, final plan, delegation, review decisions, quality | Write or fix code or tests |
-| Planner | Gemini 4 Neon (medium) | One independent proposal per requirement | Edit files |
+| Lead | Gemini 4 Carbon (medium) | Requirements, final plan, delegation, review decisions, quality | Write or fix code or tests |
+| Planner | Claude Opus 5.5 (medium) | One independent proposal per requirement | Edit files |
 | Implementer | GPT-6.2 Astra (medium) | Code, tests, test runs, development and test logs | Change the plan's scope or design |
 | Reviewer | GPT-6.2 Astra (medium), always a new agent | One independent review | Edit files or fix findings |
 
@@ -62,7 +63,7 @@ behavior, the URL schema, or a design decision changes.
 
   | Role | `providerInstanceId` | `model` | `options` | `role` |
   | --- | --- | --- | --- | --- |
-  | Planner | `antigravity_agy_gpu_vm` | `gemini-4-neon` | `{"thought_level": "medium"}` | `design` |
+  | Planner | `claudeAgent` | `claude-opus-5-5` | `{"effort": "medium"}` | `design` |
   | Implementer | `codex` | `gpt-6.2-astra` | `{"reasoningEffort": "medium"}` | `implementation` |
   | Reviewer | `codex` | `gpt-6.2-astra` | `{"reasoningEffort": "medium"}` | `review` |
 

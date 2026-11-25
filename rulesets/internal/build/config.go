@@ -11,24 +11,32 @@ import (
 	"strings"
 )
 
+type Upstream struct {
+	Name     string `json:"name"`
+	Homepage string `json:"homepage"`
+	License  string `json:"license"`
+}
 type Config struct {
-	Repository    string          `json:"repository"`
-	Fallback      string          `json:"fallback"`
-	Priority      []string        `json:"priority"`
-	V2FlyURL      string          `json:"v2fly_url"`
-	IgnoreDomains []string        `json:"ignore_domains"`
-	RuleSets      []RuleSetConfig `json:"rulesets"`
-	Assertions    []Assertion     `json:"assertions"`
-	BaseDir       string          `json:"-"`
+	Upstreams     map[string]Upstream `json:"upstreams"`
+	Repository    string              `json:"repository"`
+	Fallback      string              `json:"fallback"`
+	Priority      []string            `json:"priority"`
+	V2FlyURL      string              `json:"v2fly_url"`
+	IgnoreDomains []string            `json:"ignore_domains"`
+	RuleSets      []RuleSetConfig     `json:"rulesets"`
+	Assertions    []Assertion         `json:"assertions"`
+	BaseDir       string              `json:"-"`
 }
 
 type RuleSetConfig struct {
-	Name    string         `json:"name"`
-	Exclude []string       `json:"exclude"`
-	Sources []SourceConfig `json:"sources"`
+	Description string         `json:"description"`
+	Name        string         `json:"name"`
+	Exclude     []string       `json:"exclude"`
+	Sources     []SourceConfig `json:"sources"`
 }
 
 type SourceConfig struct {
+	Upstream          string   `json:"upstream"`
 	Name              string   `json:"name"`
 	Kind              string   `json:"kind"`
 	URL               string   `json:"url"`
@@ -67,6 +75,21 @@ func LoadConfig(path string) (Config, error) {
 		return Config{}, fmt.Errorf("resolve config path: %w", err)
 	}
 	cfg.BaseDir = filepath.Dir(abs)
+	for key, u := range cfg.Upstreams {
+		if key == "" || u.Name == "" || u.License == "" || !strings.HasPrefix(u.Homepage, "https://") {
+			return Config{}, fmt.Errorf("invalid upstream %q", key)
+		}
+	}
+	for _, g := range cfg.RuleSets {
+		if strings.TrimSpace(g.Description) == "" {
+			return Config{}, fmt.Errorf("missing description for %q", g.Name)
+		}
+		for _, s := range g.Sources {
+			if _, ok := cfg.Upstreams[s.Upstream]; !ok {
+				return Config{}, fmt.Errorf("unknown upstream %q", s.Upstream)
+			}
+		}
+	}
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
 	}

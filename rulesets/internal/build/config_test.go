@@ -1,6 +1,9 @@
 package build
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -38,5 +41,32 @@ func TestValidateSource(t *testing.T) {
 				t.Fatalf("validateSource(%+v) = %v, want valid=%t", tc.source, err, tc.valid)
 			}
 		})
+	}
+}
+
+func TestCatalogValidation(t *testing.T) {
+	cfg, err := LoadConfig("../../rulesets.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, mutate := range []func(*Config){
+		func(c *Config) { c.RuleSets[0].Description = "" },
+		func(c *Config) { c.RuleSets[0].Sources[0].Upstream = "unknown" },
+		func(c *Config) { c.Upstreams["local"] = Upstream{} },
+	} {
+		var candidate Config
+		data, _ := json.Marshal(cfg)
+		if err := json.Unmarshal(data, &candidate); err != nil {
+			t.Fatal(err)
+		}
+		mutate(&candidate)
+		data, _ = json.Marshal(candidate)
+		path := filepath.Join(t.TempDir(), "config.json")
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := LoadConfig(path); err == nil {
+			t.Fatal("invalid attribution accepted")
+		}
 	}
 }

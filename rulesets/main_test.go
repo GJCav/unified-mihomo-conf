@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compose/rulesets/internal/build"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,12 @@ func TestPublishedNotices(t *testing.T) {
 		t.Setenv("GITHUB_REPOSITORY", repo)
 		t.Setenv("GITHUB_SHA", "abc")
 		dir := t.TempDir()
-		if err := publishNotices(dir); err != nil {
+		t.Setenv("SOURCE_DATE_EPOCH", "0")
+		stats, err := metadata(build.Config{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := publishNotices(dir, stats); err != nil {
 			t.Fatal(err)
 		}
 		data, err := os.ReadFile(filepath.Join(dir, "NOTICE"))
@@ -24,7 +30,7 @@ func TestPublishedNotices(t *testing.T) {
 		if repo != "" {
 			source = "https://example.org/owner/rules/tree/abc"
 		}
-		for _, want := range []string{source, "Yifan Gao", "V2Ray", "Felix Yan", "2024 liblaf", "Sukka", "CC0", "filtered, merged and converted"} {
+		for _, want := range []string{source, "1970-01-01T00:00:00Z", "Yifan Gao", "V2Ray", "Felix Yan", "2024 liblaf", "Sukka", "CC0", "filtered, merged and converted"} {
 			if !strings.Contains(string(data), want) {
 				t.Errorf("missing %s", want)
 			}

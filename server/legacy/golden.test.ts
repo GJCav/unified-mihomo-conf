@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import worker from "./index";
+import worker from "../index";
 import cases from "./golden/cases.json";
 
 describe("frozen import endpoints", () => {
@@ -25,4 +25,8 @@ describe("frozen import endpoints", () => {
       expect(actual === expected).toBe(true);
     });
   }
+});
+
+it("keeps frozen fragments inside legacy", () => {
+  expect(existsSync(new URL("../../snippet/", import.meta.url))).toBe(false);
 });

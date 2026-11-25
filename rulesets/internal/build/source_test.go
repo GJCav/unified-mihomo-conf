@@ -2,7 +2,9 @@ package build
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/pem"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -198,6 +200,9 @@ func TestParseV2FlyRuleAttributesAndSelection(t *testing.T) {
 	allCN, report, err := loader.load(context.Background(), "", SourceConfig{Name: "v2fly:*@cn", Kind: "v2fly", AllLists: true, RequireAttributes: []string{"cn"}})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if got := report.Fetches[0].SHA256; got != fmt.Sprintf("%x", sha256.Sum256([]byte(fixture))) {
+		t.Fatalf("unexpected upstream digest %s", got)
 	}
 	if !slices.Equal(allCN.Domains, []string{"+.cn.alpha.example", "multi.beta.example"}) || len(allCN.Classical) != 2 || report.InputRules != 4 {
 		t.Fatalf("all_lists @cn: got %+v %+v", allCN, report)

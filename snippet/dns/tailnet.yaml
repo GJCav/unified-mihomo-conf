@@ -1,2 +1,0 @@
-nameserver-policy:
-  '+.tailnet': ts://tailscale

@@ -16,10 +16,12 @@
         {
           "name": "tailnet",
           "path": "sources/tailnet.txt",
-          "kind": "clash-file"
+          "kind": "clash-file",
+          "upstream": "local"
         }
       ],
-      "exclude": []
+      "exclude": [],
+      "description": "Private Tailnet IPs and hostnames, kept off the main proxy."
     },
     {
       "name": "custom-proxy",
@@ -27,10 +29,12 @@
         {
           "name": "custom-proxy",
           "path": "sources/custom-proxy.txt",
-          "kind": "custom-file"
+          "kind": "custom-file",
+          "upstream": "local"
         }
       ],
-      "exclude": []
+      "exclude": [],
+      "description": "Custom domains and rules always routed through the proxy."
     },
     {
       "name": "custom-direct",
@@ -38,10 +42,12 @@
         {
           "name": "custom-direct",
           "path": "sources/custom-direct.txt",
-          "kind": "custom-file"
+          "kind": "custom-file",
+          "upstream": "local"
         }
       ],
-      "exclude": []
+      "exclude": [],
+      "description": "Custom domains and rules always routed directly."
     },
     {
       "name": "direct",
@@ -49,19 +55,22 @@
         {
           "name": "SukkaW/Surge:lan-domain",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/lan.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/lan.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:lan-ip",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/ip/lan.txt"
+          "url": "https://ruleset.skk.moe/Clash/ip/lan.txt",
+          "upstream": "sukka"
         },
         {
           "name": "v2fly/domain-list-community:private",
           "kind": "v2fly",
           "lists": [
             "private"
-          ]
+          ],
+          "upstream": "v2fly"
         },
         {
           "name": "IANA:local-addresses",
@@ -69,42 +78,50 @@
           "urls": [
             "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry-1.csv",
             "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry-1.csv"
-          ]
+          ],
+          "upstream": "iana"
         },
         {
           "name": "felixonmars/dnsmasq-china-list:accelerated-domains.china.conf",
           "kind": "dnsmasq",
-          "url": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf"
+          "url": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf",
+          "upstream": "felixonmars"
         },
         {
           "name": "gaoyifan/china-operator-ip:china46.txt",
           "kind": "cidr",
-          "url": "https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/china46.txt"
+          "url": "https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/china46.txt",
+          "upstream": "gaoyifan"
         },
         {
           "name": "SukkaW/Surge:apple_cn",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/apple_cn.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/apple_cn.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:direct",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/direct.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/direct.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:domestic-domain",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/domestic.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/domestic.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:domestic-ip",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/ip/domestic.txt"
+          "url": "https://ruleset.skk.moe/Clash/ip/domestic.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:microsoft_cdn",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/microsoft_cdn.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/microsoft_cdn.txt",
+          "upstream": "sukka"
         },
         {
           "name": "v2fly/domain-list-community:{cn,elsevier,sciencedirect}",
@@ -113,7 +130,8 @@
             "cn",
             "elsevier",
             "sciencedirect"
-          ]
+          ],
+          "upstream": "v2fly"
         },
         {
           "name": "v2fly/domain-list-community:*@cn",
@@ -121,23 +139,27 @@
           "all_lists": true,
           "require_attributes": [
             "cn"
-          ]
+          ],
+          "upstream": "v2fly"
         },
         {
           "name": "public-tailscale",
           "path": "sources/public-tailscale.txt",
-          "kind": "domain-file"
+          "kind": "domain-file",
+          "upstream": "local"
         },
         {
           "name": "local-direct",
           "path": "sources/local-direct.txt",
           "kind": "clash-file",
-          "optional_if_covered": true
+          "optional_if_covered": true,
+          "upstream": "local"
         }
       ],
       "exclude": [
         "tailnet"
-      ]
+      ],
+      "description": "Mainland China networks, private/LAN IP ranges, academic publishers, and local direct rules."
     },
     {
       "name": "global",
@@ -153,55 +175,65 @@
             "google-deepmind",
             "google-gemini",
             "openai"
-          ]
+          ],
+          "upstream": "v2fly"
         },
         {
           "name": "SukkaW/Surge:ai-domain",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/ai.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/ai.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:ai-ip",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/ip/ai.txt"
+          "url": "https://ruleset.skk.moe/Clash/ip/ai.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:apple_services-domain",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/apple_services.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/apple_services.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:apple_services-ip",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/ip/apple_services.txt"
+          "url": "https://ruleset.skk.moe/Clash/ip/apple_services.txt",
+          "upstream": "sukka"
         },
         {
           "name": "v2fly/domain-list-community:geolocation-!cn",
           "kind": "v2fly",
           "lists": [
             "geolocation-!cn"
-          ]
+          ],
+          "upstream": "v2fly"
         },
         {
           "name": "SukkaW/Surge:telegram-domain",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/telegram.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/telegram.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:telegram-ip",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/ip/telegram.txt"
+          "url": "https://ruleset.skk.moe/Clash/ip/telegram.txt",
+          "upstream": "sukka"
         },
         {
           "name": "SukkaW/Surge:global",
           "kind": "clash",
-          "url": "https://ruleset.skk.moe/Clash/non_ip/global.txt"
+          "url": "https://ruleset.skk.moe/Clash/non_ip/global.txt",
+          "upstream": "sukka"
         }
       ],
       "exclude": [
         "tailnet",
         "direct"
-      ]
+      ],
+      "description": "International services (AI, Apple, Google, Telegram, and more) routed through the proxy."
     }
   ],
   "assertions": [
@@ -240,5 +272,37 @@
       "ruleset": "direct",
       "exclusive": true
     }
-  ]
+  ],
+  "upstreams": {
+    "sukka": {
+      "name": "SukkaW/Surge",
+      "license": "AGPL-3.0",
+      "homepage": "https://github.com/SukkaW/Surge"
+    },
+    "v2fly": {
+      "name": "v2fly/domain-list-community",
+      "license": "MIT",
+      "homepage": "https://github.com/v2fly/domain-list-community"
+    },
+    "iana": {
+      "name": "IANA Special Registries",
+      "license": "CC0-1.0",
+      "homepage": "https://www.iana.org/assignments/"
+    },
+    "felixonmars": {
+      "name": "felixonmars/dnsmasq-china-list",
+      "license": "WTFPL",
+      "homepage": "https://github.com/felixonmars/dnsmasq-china-list"
+    },
+    "gaoyifan": {
+      "name": "gaoyifan/china-operator-ip",
+      "license": "MIT",
+      "homepage": "https://github.com/gaoyifan/china-operator-ip"
+    },
+    "local": {
+      "name": "This repository",
+      "license": "MIT",
+      "homepage": "https://github.com/GJCav/unified-mihomo-conf"
+    }
+  }
 }
