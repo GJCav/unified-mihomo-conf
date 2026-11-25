@@ -255,3 +255,5 @@ public/v2/rules/                                   生成物，gitignore
   无法扣除子树，后者会被国内 DNS 解析。在 `nameserver-policy` 中把 `rule-set:tailnet-domain` 放在 direct 之前并
   指向 DoH，保持现有解析方式。已用隔离 mihomo 和三个模拟 DNS 验证优先级，phone 的 `+.tailnet` 仍优先。
 - 2026-11-25 审查第 1 轮：旧 Worker 在任意路径接受 `o=y`，路由表改为与其一致。
+- 2026-11-25 切换：用户授权 lead 代为执行 ★ 步骤。订阅地址改用用户新提供的值（主机不同）。Actions 禁用期间推送的
+  workflow 未被登记，改为启用后再推送一个提交触发首次部署。

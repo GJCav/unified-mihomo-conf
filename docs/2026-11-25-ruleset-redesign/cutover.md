@@ -46,7 +46,7 @@
 
    在 Branches 核对唯一分支 main，在 Actions 核对没有运行。配置错误可在启用前修正。若发现公开内容泄密，立即限制仓库访问并轮换受影响凭据，删除提交无法撤回已获取的副本。
 
-5. ★ 新仓库 Settings → Actions → General 允许工作流所需的 Actions，保存。Actions → Publish Worker and rules → Run workflow → main → Run workflow。核对 generate 和 deploy 均成功，Cloudflare 上新版本承载流量。部署失败时先检查当前生产版本，必要时按第 9 项回退。
+5. ★ 新仓库 Settings → Actions → General 允许工作流所需的 Actions，保存。Actions → Publish Worker and rules → Run workflow → main → Run workflow。在 Actions 禁用期间推送的 workflow 不会被 GitHub 登记，列表为空时需再向 main 推送一个提交，该推送本身会触发部署。核对 generate 和 deploy 均成功，Cloudflare 上新版本承载流量。部署失败时先检查当前生产版本，必要时按第 9 项回退。
 
 6. ★ 在本机隐私窗口打开公开规则和不存在的规则，用开发者工具 Network 核对前者 200 且内容为规则，后者 401 或 404。全新隐私会话打开 /v2/、/config.yaml、/v2/auth-context 和 /health，未提供认证时均应要求认证。使用原有设备的旧 URL 刷新，检查 /config.yaml 及旧 o=y 链接仍产生预期 YAML。检查 profile、策略组、DNS 和订阅更新。勿粘贴链接到 issue 或日志。检查失败时暂停迁移，按第 9 项回退。
 
