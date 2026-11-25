@@ -1,11 +1,6 @@
 # Mihomo Compose
 
-Mihomo Compose is a deliberately small Cloudflare Worker and Vue 3 application
-for building machine-specific Mihomo/Clash configurations from shared YAML
-snippets. The browser selects a profile or individual snippets, while the
-Worker renders a complete YAML configuration that Mihomo can import directly.
-
-This document records the project state and design decisions as of 2026-08-25.
+Select a device profile at `/v2/` and scan its Import URL into Mihomo. The authenticated Worker renders the device configuration. Mihomo subsequently refreshes its public routing providers every 24 hours and caches each file locally.
 
 ## Network model
 
@@ -37,11 +32,7 @@ Phone         -> main proxy subscription
   ordered routing rules rather than TUN route exclusions.
 - The old Shadowsocks inbound on the gateway was intentionally removed.
 
-## Built-in profiles
-
-Profiles are named combinations of snippets defined in `src/App.vue`. They are
-convenient defaults, not a second configuration format; choosing a profile
-simply updates the same composable editor state.
+## Profiles
 
 | Profile | Upstream | TUN | Tailnet handling | External UI |
 | --- | --- | --- | --- | --- |
@@ -51,70 +42,35 @@ simply updates the same composable editor state.
 | iPad | Main subscription | Basic | Mihomo Tailscale proxy + bypass rule | Disabled |
 | Phone | Main subscription | Basic | Mihomo Tailscale proxy + DNS policy | Disabled |
 
-The gateway and laptop must continue to render `external-ui: ui`. The normal
-server enables `tun/tailscale-route-exclusion.yaml` by default.
+Each file in `profiles/` is a complete YAML skeleton. The browser and Worker share the profile parameters in `shared/profiles.ts`. The server profile takes `s` (gateway address). iPad and phone take `h` (Tailscale hostname) and `k` (auth key). Gateway and laptop have no parameters.
 
-The shared default rule order is:
+## Routes and credentials
 
-1. Special/private IP bypasses
-2. Chinese website bypasses
-3. Academic publisher bypasses
-4. THU IPv4/IPv6 bypasses
-5. Proxy website rules and final `MATCH`
+| Route | Behavior |
+| --- | --- |
+| `/v2/?profile=<id>` | Select a profile, enter its parameters, preview YAML or copy the Import URL. |
+| `/v2/config/<id>.yaml` | Render the selected skeleton with Worker secrets. |
+| `/v2/auth-context` | Return the authenticated username and password for local QR generation. |
+| `/v2/rules/*` | Serve public static providers, generation statistics and attribution. Missing files return 404. |
+| `/config.yaml` and legacy paths with `o=y` | Render a frozen legacy configuration with its original rule order. |
+| `/` with other queries | Redirect to `/v2/` and discard the query. |
+| `/health` | Return the authenticated health check. |
 
-The iPad and phone prepend the Tailnet bypass rule. Rule order is significant
-and is preserved by the sortable editor.
+Cloudflare serves the public rules directly. Other application requests pass through HTTPS enforcement, a Worker-scoped limit of 60 requests per client IP per minute, and Basic authentication. The UI bundles its dependencies. The browser caches editable parameters for 30 days. The Import URL and QR code contain credentials, and authenticated YAML previews can contain the upstream subscription. Configuration and auth-context responses use private, no-store caching.
 
-## Composition model
+## Routing and DNS
 
-`snippet/skeleton.yaml` describes the final document. General settings remain
-top-level fragments; the skeleton owns structural keys such as `dns`, `tun`,
-`proxy-providers`, `proxy-groups`, `proxies`, and `rules`, into which the
-selected snippets are inserted.
+Tailnet rules come first, followed by custom proxy, custom direct, direct domains and classical rules, global domains and classical rules, global IP ranges, direct IP ranges and the final default outbound. Global IP matching uses `no-resolve`. Tailnet uses the Tailscale proxy on iPad and phone and DIRECT on other devices.
 
-```text
-snippet/
-  skeleton.yaml
-  general/          basic, gateway
-  external-ui/      basic
-  dns/              basic, tailnet
-  tun/              basic, tailscale-route-exclusion
-  proxy-providers/  main
-  proxy-groups/     main
-  proxies/          gateway, tailscale
-  rules/            independent, order-sensitive rule sets
-```
+The generator downloads the upstreams listed in `rulesets/rulesets.json`. It merges and deduplicates domain and classical rules and subtracts higher-priority IP ranges exactly. Direct retains the parts of `100.64.0.0/10` outside the private tailnet. A parent domain can remain in a later set when an earlier set owns a child suffix. The first matching rule wins. Process-name and destination-port inputs are filtered. IP-ASN rules use GeoLite2-ASN.
 
-`general`, `external-ui`, and `dns` are single-choice parts. The `tailnet` DNS
-choice composes the shared `basic` DNS fragment with its small policy overlay.
-TUN snippets, providers, groups, proxies, and rules are independently
-composable; rules are also sortable. Mustache provides the few required
-runtime placeholders:
+Add Mihomo rules without outbound names to `rulesets/sources/custom-proxy.txt` or `rulesets/sources/custom-direct.txt`. Domain and classical text providers support empty custom lists. Each profile already references both, so devices pick up edits on their next provider refresh.
 
-- `gateway_server` for the normal-server gateway proxy
-- `tailscale_hostname` and `tailscale_auth_key` for the Mihomo Tailscale proxy
-- `main_subscription_url`, supplied only by the Worker secret
+Server, laptop, iPad and phone send direct-domain queries to 101.6.6.6, 223.5.5.5 and 119.29.29.29. Tailnet and custom-proxy domain providers take precedence and use the configured DoH service, also used for unmatched domains. Phone gives `+.tailnet` highest priority through `ts://tailscale`. Gateway keeps its existing DNS behavior.
 
-The renderer in `server/render.ts` validates required values and rejects unsafe
-or nonsensical combinations, including a provider/group mismatch, conflicting
-gateway and main group names, missing default outbound rules, Tailnet rules
-without a Tailscale proxy, route exclusion without basic TUN, and an empty rule
-list.
+## Legacy imports
 
-This insertion-based model was chosen instead of a general YAML deep-merge
-engine. It keeps the project and the resulting configuration easy to inspect.
-
-## Browser and URL behavior
-
-The page is a responsive two-row compositor. The top row contains the compact
-profile chooser. The lower row contains the snippet/value editor and a
-syntax-highlighted rendered preview, side by side when space permits and
-stacked on narrow screens.
-
-The complete editable plan lives in the page query string and changes
-reactively. The Import URL uses the same schema with `o=y`, which tells the
-Worker to return YAML instead of the application. This makes a URL both a
-shareable plan and a stable Mihomo subscription endpoint.
+Existing devices can keep their Import URLs indefinitely. Re-import a v2 profile to switch to independently refreshed rules. The legacy renderer and frozen fragments live in `server/legacy/` and `snippet/`.
 
 The compact parameters are:
 
@@ -132,135 +88,30 @@ The compact parameters are:
 - `s`, `h`, `k`: gateway server, Tailscale hostname, and Tailscale auth key
 - `o=y`: render YAML
 
-Legacy `/config.yaml` routes are accepted. Legacy `u` subscription parameters
+Legacy `/config.yaml` routes are accepted. Outside `/v2/`, any path with `o=y` renders legacy YAML, except the health check at `/health`. Legacy `u` subscription parameters
 are deliberately ignored because the authoritative subscription is now held by
 the Worker.
 
-The browser remembers editable placeholder values for 30 days in
-origin-scoped local storage. URL values take precedence over the cache, and
-expired or malformed entries are discarded. The main subscription URL is
-read-only and is never cached by this mechanism. A Tailscale auth key may
-therefore exist in local storage and in generated URLs; both must be treated as
-secrets.
-
-The Import URL embeds the authenticated username and password using standard
-`https://username:password@host/...` URL userinfo so Mihomo clients can fetch it
-without a separate credential prompt. A QR code for that same URL is generated
-entirely in the browser with `qrcode.vue`; it consumes no Worker CPU. Treat the
-full Import URL and QR code as credentials.
-
-## Worker state and security
-
-The deployed Worker requires two encrypted secrets:
-
-- `BASIC_AUTH_CREDENTIALS`: one `username:password` string, split at the first
-  colon
-- `MAIN_SUBSCRIPTION_URL`: the complete HTTP or HTTPS subscription URL
-
-The main subscription is centralized so changing the secret updates every
-device without changing its Import URL. The UI displays the current value as a
-read-only field.
-
-Changing a Worker secret from this web page was considered and intentionally
-rejected. A Worker cannot directly mutate its own secret binding. Giving it a
-Cloudflare API token would allow self-deployment and make that powerful token
-part of the application's attack surface. KV plus a dedicated admin endpoint
-would make browser editing possible, but would add mutable state, eventual
-consistency, CSRF/admin-auth concerns, and more code. For this small private
-application, `wrangler secret put` remains the administrative interface.
-
-The request path has these defenses:
-
-- Cloudflare serves only the custom domain `mihomo-conf.crychic.uk`;
-  `workers.dev` and preview URLs are disabled.
-- The Worker rejects non-HTTPS requests.
-- Every route, including assets, health checks, and rendered YAML, requires
-  valid HTTP Basic Authentication.
-- Before authentication, a Worker-scoped Rate Limiting binding permits 60
-  requests per client IP per 60-second period and returns HTTP 429 with
-  `Retry-After: 60` when exceeded. This binding was preferred over a zone-wide
-  rule so unrelated sites and Workers are unaffected. Cloudflare enforcement
-  is distributed and should be viewed as abuse mitigation, not an exact global
-  counter.
-- Frontend dependencies are bundled; the deployed page loads no JavaScript or
-  CSS from third-party CDNs.
-
-Basic Authentication protects transport and access but is not encryption by
-itself; HTTPS is essential. Any authenticated user can see the subscription URL
-and credentials needed to construct Import URLs, which is intentional for this
-single-user administration model.
-
 ## Development
 
+Install Node 24, Go 1.26.11, curl and mihomo v1.19.34. Copy `.dev.vars.example` to untracked `.dev.vars` and supply local values. From the repository root run:
+
 ```sh
-npm install
-cp .dev.vars.example .dev.vars
+npm ci
+(cd rulesets && go test ./... && go run . -mihomo "$(command -v mihomo)")
+MIHOMO_BIN="$(command -v mihomo)" npm test
+npm run build
 npm run dev
 ```
 
-Replace the subscription placeholder in `.dev.vars`. The ignored local file
-uses `dev:dev` for `BASIC_AUTH_CREDENTIALS`. Vite runs the application with the
-Cloudflare Workers runtime and uses the basic SSL plugin to serve HTTPS with a
-self-signed certificate. Accept its browser warning once for local use.
+Open the local HTTPS URL at `/v2/`. The build requires all 12 rule files, stats.json, NOTICE and AGPL-3.0.txt in `public/v2/rules/`. Generated assets stay out of Git.
 
-Useful checks:
+## Deployment
 
-```sh
-npm test
-npm run build
-```
+Pull requests run generation, tests and the production build without secrets. A main-branch push, daily schedule or manual dispatch generates a fresh rule artifact before publishing. The dnsmasq importer accepts one or more slash-separated domains followed by an IP address. Source downloads and redirects require HTTPS. The generator checks numeric IP-ASN values locally and loads the remaining classical entries into an isolated mihomo process. Empty custom groups are valid. Upstream, assertion, classical validation or MRS round-trip failures stop publication. The deploy job uses the main-only GitHub `production` environment. Set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `BASIC_AUTH_CREDENTIALS`, `MAIN_SUBSCRIPTION_URL`, `DOH_URL`, `TAILSCALE_CONTROL_URL` and `PUBLIC_BASE_URL` there. The public base URL must match the custom domain in `wrangler.jsonc`.
 
-Important implementation locations:
+The workflow assumes the Worker already exists with its custom domain bound. For first creation, generate the assets, build the app, and run `npx wrangler deploy --secrets-file "$secrets_file"` with a private JSON file containing the five runtime bindings. To change domains, update the custom domain in `wrangler.jsonc` and the production `PUBLIC_BASE_URL`, apply the binding with `npx wrangler triggers deploy`, and publish the updated Worker version.
 
-- `src/App.vue`: UI, profile defaults, reactive URL state, and local cache
-- `server/index.ts`: HTTPS, rate limiting, Basic Auth, routing, and assets
-- `server/render.ts`: URL decoding, validation, and YAML composition
-- `snippet/`: the reusable Mihomo fragments and skeleton
-- `wrangler.jsonc`: custom domain, bindings, and deployment settings
+The workflow uploads the five Worker bindings with the new version, then activates that version. Roll back the Worker version to restore its code and rules together. Devices with cached providers can continue using their last successful download. After a binding rotation, refresh legacy configurations and re-import affected v2 skeletons.
 
-The `reference/` directory contains the old independently managed
-configurations used to derive this design. It is intentionally ignored by Git
-because those live files may contain credentials. Never copy their secrets
-into tracked snippets.
-
-## Deployment and maintenance
-
-GitHub Actions tests and deploys each push to `main`. Set the two deployment
-secrets under **Settings → Secrets and variables → Actions → Repository secrets**.
-The Worker reads its two runtime secrets from Cloudflare.
-
-| Secret | Where to set it | Value and purpose |
-| --- | --- | --- |
-| `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions | ID of the Cloudflare account that owns the Worker. |
-| `CLOUDFLARE_API_TOKEN` | GitHub Actions | API token with permission to upload and deploy versions of the existing `unified-mihomo-conf` Worker. CI leaves domains and routes in place. |
-| `BASIC_AUTH_CREDENTIALS` | Cloudflare Worker | `username:password` for access to the web UI and generated YAML. |
-| `MAIN_SUBSCRIPTION_URL` | Cloudflare Worker | Full HTTP or HTTPS URL of the upstream proxy subscription. |
-
-To set or rotate the Worker secrets, authenticate Wrangler with the intended
-Cloudflare account and enter the values interactively:
-
-```sh
-npx wrangler secret put BASIC_AUTH_CREDENTIALS
-npx wrangler secret put MAIN_SUBSCRIPTION_URL
-```
-
-To deploy manually, run `npm run deploy`.
-
-Updating `MAIN_SUBSCRIPTION_URL` through Wrangler deploys a new Worker version;
-existing device URLs remain valid. The normal application deployment bundles
-Vue 3, Mustache, syntax highlighting, icons, QR generation, snippets, and the
-Worker—there are no runtime package/CDN installation steps.
-
-When adding a snippet:
-
-1. Put it under `snippet/<part>/<purpose>.yaml`.
-2. Add its stable one-character URL code and UI label.
-3. Decide whether it is single-choice, multi-select, or order-sensitive.
-4. Add validation for any new dependencies or conflicts.
-5. Update profile defaults only when the new behavior is intentional.
-6. Extend renderer and Worker tests before deploying.
-
-In particular, preserve these compatibility decisions unless deliberately
-revisiting the network design: gateway and laptop external UI, normal-server
-Tailnet route exclusion, iPad's Mihomo-managed Tailscale path, IPv6 support,
-and THU networks remaining in the rule layer.
+Preserve gateway and laptop external UI, normal-server Tailnet route exclusion, iPad's Mihomo-managed Tailscale path, IPv6 support and THU networks in the rule layer.

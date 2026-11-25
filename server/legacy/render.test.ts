@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { PlanError, renderConfiguration } from "./render";
+import { PlanError, renderConfiguration as renderLegacy } from "./render";
+
+function renderConfiguration(params: URLSearchParams, subscription?: string) {
+  return renderLegacy(params, subscription, "https://dns.invalid/query", "https://control.invalid");
+}
 
 describe("renderConfiguration", () => {
   it("renders a normal server through the gateway", () => {

@@ -12,7 +12,7 @@
     }
   ],
   "secrets": {
-    "required": ["BASIC_AUTH_CREDENTIALS", "MAIN_SUBSCRIPTION_URL"]
+    "required": ["BASIC_AUTH_CREDENTIALS", "MAIN_SUBSCRIPTION_URL", "PUBLIC_BASE_URL", "DOH_URL", "TAILSCALE_CONTROL_URL"]
   },
   "ratelimits": [
     {
@@ -26,7 +26,7 @@
   ],
   "assets": {
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
-    "run_worker_first": true
+    "not_found_handling": "none",
+    "run_worker_first": ["/*", "!/v2/rules/*"]
   }
 }

@@ -8,11 +8,12 @@ export default defineConfig(({ command, mode }) => {
   const development = command === "serve" && mode !== "test";
 
   return {
+    build: { assetsDir: "v2/assets", rollupOptions: { input: "v2/index.html" } },
     plugins: [
       vue({ compiler: vueCompiler }),
       ...(development ? [basicSsl()] : []),
       ...(mode === "test" ? [] : [cloudflare()]),
     ],
-    server: development ? { https: true } : undefined,
+    server: development ? { https: {} } : undefined,
   };
 });

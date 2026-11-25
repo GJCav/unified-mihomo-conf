@@ -1,0 +1,45 @@
+name: Generate and validate rules
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: '1.26.11'
+          cache-dependency-path: rulesets/go.sum
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install verified mihomo
+        run: |
+          cd "$RUNNER_TEMP"
+          curl --fail --location --retry 3 --output mihomo.gz https://github.com/MetaCubeX/mihomo/releases/download/v1.19.34/mihomo-linux-amd64-v1.19.34.gz
+          echo '223fab877e5795ce780ba39902e5f0b1113c1256ae244a7160f1165e017e9ccc  mihomo.gz' | sha256sum -c -
+          gzip -dc mihomo.gz > mihomo
+          chmod 755 mihomo
+          echo "MIHOMO_BIN=$RUNNER_TEMP/mihomo" >> "$GITHUB_ENV"
+      - name: Test and generate
+        working-directory: rulesets
+        run: |
+          go test ./...
+          go run . -mihomo "$MIHOMO_BIN"
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: github.event_name != 'pull_request'
+        with:
+          name: generated-rules
+          path: public/v2/rules/
+          if-no-files-found: error

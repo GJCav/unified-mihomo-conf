@@ -1,0 +1,173 @@
+mixed-port: 7890
+mode: rule
+
+allow-lan: true
+
+external-controller: 0.0.0.0:9090
+log-level: warning
+
+find-process-mode: strict
+
+geox-url:
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+geo-auto-update: false
+
+external-ui: ui
+
+
+
+
+
+proxies:
+  - name: default
+    type: http
+    server: "edge"
+    port: 7890
+rules:
+  # IPv4 Special Address Blocks
+  - IP-CIDR,0.0.0.0/8,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,100.64.0.0/10,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,169.254.0.0/16,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,192.0.0.0/24,DIRECT
+  - IP-CIDR,192.0.2.0/24,DIRECT
+  - IP-CIDR,192.88.99.0/24,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,198.18.0.0/15,DIRECT
+  - IP-CIDR,198.51.100.0/24,DIRECT
+  - IP-CIDR,203.0.113.0/24,DIRECT
+  - IP-CIDR,224.0.0.0/4,DIRECT
+  - IP-CIDR,233.252.0.0/24,DIRECT
+  - IP-CIDR,240.0.0.0/4,DIRECT
+  - IP-CIDR,255.255.255.255/32,DIRECT
+
+  # IPv6 Special Address Blocks
+  - IP-CIDR,::/128,DIRECT
+  - IP-CIDR,::1/128,DIRECT
+  - IP-CIDR,2001:db8::/32,DIRECT
+  - IP-CIDR,3fff::/20,DIRECT
+  - IP-CIDR,fc00::/7,DIRECT
+  - IP-CIDR,fe80::/64,DIRECT
+  # Bypass China domains
+  - GEOIP,CN,DIRECT
+  - GEOSITE,geolocation-cn,DIRECT
+
+  # Bypass Bing
+  - DOMAIN-SUFFIX,bing.com,DIRECT
+  - DOMAIN-SUFFIX,bing.cn,DIRECT
+
+  # Bypass Xiaomi services
+  - GEOSITE,xiaomi,DIRECT
+
+  # Bypass major mainland streaming services
+  - GEOSITE,douyin,DIRECT
+  - GEOSITE,bilibili,DIRECT
+  - GEOSITE,youku,DIRECT
+  - GEOSITE,tencent,DIRECT
+  - GEOSITE,iqiyi,DIRECT
+
+  # Bypass Alibaba and JD services
+  - GEOSITE,alibaba,DIRECT
+  - GEOSITE,jd,DIRECT
+
+  # Bypass Alipay services (no dedicated geosite category)
+  - DOMAIN-SUFFIX,alipay,DIRECT
+  - DOMAIN-SUFFIX,alipay-corp.com,DIRECT
+  - DOMAIN-SUFFIX,alipay-eco.com,DIRECT
+  - DOMAIN-SUFFIX,alipay-inc.com,DIRECT
+  - DOMAIN-SUFFIX,alipay-traffic.com,DIRECT
+  - DOMAIN-SUFFIX,alipay.cn,DIRECT
+  - DOMAIN-SUFFIX,alipay.com,DIRECT
+  - DOMAIN-SUFFIX,alipay.com.cn,DIRECT
+  - DOMAIN-SUFFIX,alipay.hk,DIRECT
+  - DOMAIN-SUFFIX,alipay.net,DIRECT
+  - DOMAIN-SUFFIX,alipaydesign.com,DIRECT
+  - DOMAIN-SUFFIX,alipaydev.com,DIRECT
+  - DOMAIN-SUFFIX,alipaydns.com,DIRECT
+  - DOMAIN-SUFFIX,alipayeshop.com,DIRECT
+  - DOMAIN-SUFFIX,alipaylog.com,DIRECT
+  - DOMAIN-SUFFIX,alipaymo.com,DIRECT
+  - DOMAIN-SUFFIX,alipayobjects.com,DIRECT
+  - DOMAIN-SUFFIX,alipayplus.com,DIRECT
+  - DOMAIN-SUFFIX,ifaa.org.cn,DIRECT
+  - DOMAIN-SUFFIX,luohanacademy.com,DIRECT
+  - DOMAIN-SUFFIX,sinopayment.com.cn,DIRECT
+
+  # Bypass WeChat services (no dedicated geosite category)
+  - DOMAIN,apd-pcdnwxlogin.teg.tencent-cloud.net,DIRECT
+  - DOMAIN,btrace.qq.com,DIRECT
+  - DOMAIN,dldir1.qq.com,DIRECT
+  - DOMAIN,slife.xy-asia.com,DIRECT
+  - DOMAIN,soup.v.qq.com,DIRECT
+  - DOMAIN,vweixinf.tc.qq.com,DIRECT
+  - DOMAIN,weixin110.qq.com,DIRECT
+  - DOMAIN,wup.imtt.qq.com,DIRECT
+  - DOMAIN-SUFFIX,iot-tencent.com,DIRECT
+  - DOMAIN-SUFFIX,lbs.gtimg.com,DIRECT
+  - DOMAIN-SUFFIX,map.qq.com,DIRECT
+  - DOMAIN-SUFFIX,qlogo.cn,DIRECT
+  - DOMAIN-SUFFIX,qpic.cn,DIRECT
+  - DOMAIN-SUFFIX,servicewechat.com,DIRECT
+  - DOMAIN-SUFFIX,tenpay.com,DIRECT
+  - DOMAIN-SUFFIX,up-hl.3g.qq.com,DIRECT
+  - DOMAIN-SUFFIX,vweixinthumb.tc.qq.com,DIRECT
+  - DOMAIN-SUFFIX,wechat.com,DIRECT
+  - DOMAIN-SUFFIX,wechatlegal.net,DIRECT
+  - DOMAIN-SUFFIX,wechatos.net,DIRECT
+  - DOMAIN-SUFFIX,wechatpay.com,DIRECT
+  - DOMAIN-SUFFIX,weixin.com,DIRECT
+  - DOMAIN-SUFFIX,weixin.qq.com,DIRECT
+  - DOMAIN-SUFFIX,weixinbridge.com,DIRECT
+  - DOMAIN-SUFFIX,weixinsxy.com,DIRECT
+  - DOMAIN-SUFFIX,wx.gtimg.com,DIRECT
+  - DOMAIN-SUFFIX,wx.qq.com,DIRECT
+  - DOMAIN-SUFFIX,wxapp.tc.qq.com,DIRECT
+  - DOMAIN-SUFFIX,wxs.qq.com,DIRECT
+  - DOMAIN-SUFFIX,yun-hl.3g.qq.com,DIRECT
+
+  # Skip CN domains that are not automatically excluded
+  - DOMAIN-SUFFIX,mineru.net,DIRECT
+  - DOMAIN-SUFFIX,openxlab.org.cn,DIRECT
+  - DOMAIN-SUFFIX,gjm20.top,DIRECT
+  - DOMAIN-SUFFIX,edu.cn,DIRECT
+  - DOMAIN-SUFFIX,wechat.com,DIRECT
+  - DOMAIN-SUFFIX,qq.com,DIRECT
+  - DOMAIN-SUFFIX,qq.com.cn,DIRECT
+  - DOMAIN-SUFFIX,servicewechat.com,DIRECT
+
+  # Bypass domains that are non-CN but optimized for CN
+  - DOMAIN-SUFFIX,ubuntu.com,DIRECT
+  - DOMAIN-SUFFIX,crychic.uk,DIRECT
+  # Use university IP for well-known publishers
+  - DOMAIN-SUFFIX,acm.org,DIRECT
+  - DOMAIN-SUFFIX,usenix.org,DIRECT
+  - DOMAIN-SUFFIX,ieee.org,DIRECT
+  - DOMAIN-SUFFIX,dblp.com,DIRECT
+  # Tsinghua University IPv4
+  - IP-CIDR,59.66.0.0/16,DIRECT
+  - IP-CIDR,101.5.0.0/16,DIRECT
+  - IP-CIDR,101.6.0.0/16,DIRECT
+  - IP-CIDR,118.229.0.0/20,DIRECT
+  - IP-CIDR,166.111.0.0/16,DIRECT
+  - IP-CIDR,183.172.0.0/16,DIRECT
+  - IP-CIDR,183.173.0.0/16,DIRECT
+
+  # Tsinghua University IPv6
+  - IP-CIDR6,2001:250:200::/48,DIRECT
+  - IP-CIDR6,2001:da8:200::/48,DIRECT
+  - IP-CIDR6,2402:f000::/32,DIRECT
+  # Proxy Google
+  - DOMAIN-SUFFIX,gstatic.com,default
+  - DOMAIN-SUFFIX,googletagmanager.com,default
+  - DOMAIN-SUFFIX,google-analytics.com,default
+
+  # Proxy Anthropic.com
+  - DOMAIN-SUFFIX,claude.ai,default
+  - DOMAIN-SUFFIX,anthropic.com,default
+  - DOMAIN-SUFFIX,claude.com,default
+
+  - MATCH,default

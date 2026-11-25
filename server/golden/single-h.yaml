@@ -1,0 +1,59 @@
+mixed-port: 7890
+mode: rule
+
+allow-lan: false
+
+external-controller: 127.0.0.1:9090
+log-level: warning
+
+find-process-mode: strict
+
+geox-url:
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+geo-auto-update: false
+
+
+
+
+proxy-providers:
+  main-subscription:
+    type: http
+    url: "https://subscription.invalid"
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      timeout: 5000
+      lazy: true
+      expected-status: 204
+
+proxy-groups:
+  - name: default
+    type: select
+    url: http://www.gstatic.com/generate_204
+    interval: 3600
+    use:
+      - main-subscription
+
+proxies:
+  - name: tailscale
+    type: tailscale
+    hostname: "device"
+    auth-key: "example"
+    control-url: https://control.invalid
+rules:
+  # Tsinghua University IPv4
+  - IP-CIDR,59.66.0.0/16,DIRECT
+  - IP-CIDR,101.5.0.0/16,DIRECT
+  - IP-CIDR,101.6.0.0/16,DIRECT
+  - IP-CIDR,118.229.0.0/20,DIRECT
+  - IP-CIDR,166.111.0.0/16,DIRECT
+  - IP-CIDR,183.172.0.0/16,DIRECT
+  - IP-CIDR,183.173.0.0/16,DIRECT
+
+  # Tsinghua University IPv6
+  - IP-CIDR6,2001:250:200::/48,DIRECT
+  - IP-CIDR6,2001:da8:200::/48,DIRECT
+  - IP-CIDR6,2402:f000::/32,DIRECT

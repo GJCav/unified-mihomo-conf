@@ -1,8 +1,10 @@
-name: Test and deploy Worker
-
+name: Publish Worker and rules
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,13 +14,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  generate:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
   deploy:
+    needs: generate
     runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      actions: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: generated-rules
+          path: public/v2/rules
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
           cache: npm
@@ -29,8 +43,21 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          BASIC_AUTH_CREDENTIALS: ${{ secrets.BASIC_AUTH_CREDENTIALS }}
+          MAIN_SUBSCRIPTION_URL: ${{ secrets.MAIN_SUBSCRIPTION_URL }}
+          DOH_URL: ${{ secrets.DOH_URL }}
+          TAILSCALE_CONTROL_URL: ${{ secrets.TAILSCALE_CONTROL_URL }}
+          PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL }}
         run: |
+          umask 077
+          secrets_file=$(mktemp)
           upload_log=$(mktemp)
-          WRANGLER_OUTPUT_FILE_PATH="$upload_log" npx wrangler versions upload
+          trap 'rm -f "$secrets_file" "$upload_log"' EXIT
+          python3 -c 'import os,json; keys="BASIC_AUTH_CREDENTIALS MAIN_SUBSCRIPTION_URL DOH_URL TAILSCALE_CONTROL_URL PUBLIC_BASE_URL".split(); values={k:os.environ[k] for k in keys}; assert all(values.values()), "missing Worker secret"; print(json.dumps(values))' > "$secrets_file"
+          WRANGLER_OUTPUT_FILE_PATH="$upload_log" npx wrangler versions upload --secrets-file "$secrets_file"
           version_id=$(jq -er 'select(.type == "version-upload") | .version_id | strings | select(length > 0)' "$upload_log")
           npx wrangler versions deploy "${version_id}@100%" --yes
+      - name: Keep daily schedule enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml/enable"

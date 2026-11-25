@@ -1,0 +1,38 @@
+mixed-port: 7890
+mode: rule
+
+allow-lan: false
+
+external-controller: 127.0.0.1:9090
+log-level: warning
+
+find-process-mode: strict
+
+geox-url:
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+geo-auto-update: false
+
+
+
+
+
+
+proxies:
+  - name: default
+    type: http
+    server: "edge"
+    port: 7890
+  - name: tailscale
+    type: tailscale
+    hostname: "device"
+    auth-key: "example"
+    control-url: https://control.invalid
+rules:
+  # My domain
+  - DOMAIN-SUFFIX,tailscale.gjm20.top,tailscale
+
+  # My tailnet
+  - IP-CIDR,100.88.0.0/16,tailscale
+  - DOMAIN-SUFFIX,tailnet,tailscale

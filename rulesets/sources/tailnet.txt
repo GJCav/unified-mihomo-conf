@@ -1,0 +1,3 @@
+DOMAIN-SUFFIX,tailscale.gjm20.top
+IP-CIDR,100.88.0.0/16
+DOMAIN-SUFFIX,tailnet

@@ -1,0 +1,244 @@
+{
+  "repository": "compose",
+  "fallback": "global",
+  "priority": [
+    "tailnet",
+    "custom-proxy",
+    "custom-direct",
+    "direct",
+    "global"
+  ],
+  "v2fly_url": "https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat_plain.yml",
+  "rulesets": [
+    {
+      "name": "tailnet",
+      "sources": [
+        {
+          "name": "tailnet",
+          "path": "sources/tailnet.txt",
+          "kind": "clash-file"
+        }
+      ],
+      "exclude": []
+    },
+    {
+      "name": "custom-proxy",
+      "sources": [
+        {
+          "name": "custom-proxy",
+          "path": "sources/custom-proxy.txt",
+          "kind": "custom-file"
+        }
+      ],
+      "exclude": []
+    },
+    {
+      "name": "custom-direct",
+      "sources": [
+        {
+          "name": "custom-direct",
+          "path": "sources/custom-direct.txt",
+          "kind": "custom-file"
+        }
+      ],
+      "exclude": []
+    },
+    {
+      "name": "direct",
+      "sources": [
+        {
+          "name": "SukkaW/Surge:lan-domain",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/lan.txt"
+        },
+        {
+          "name": "SukkaW/Surge:lan-ip",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/ip/lan.txt"
+        },
+        {
+          "name": "v2fly/domain-list-community:private",
+          "kind": "v2fly",
+          "lists": [
+            "private"
+          ]
+        },
+        {
+          "name": "IANA:local-addresses",
+          "kind": "iana-local",
+          "urls": [
+            "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry-1.csv",
+            "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry-1.csv"
+          ]
+        },
+        {
+          "name": "felixonmars/dnsmasq-china-list:accelerated-domains.china.conf",
+          "kind": "dnsmasq",
+          "url": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf"
+        },
+        {
+          "name": "gaoyifan/china-operator-ip:china46.txt",
+          "kind": "cidr",
+          "url": "https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/china46.txt"
+        },
+        {
+          "name": "SukkaW/Surge:apple_cn",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/apple_cn.txt"
+        },
+        {
+          "name": "SukkaW/Surge:direct",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/direct.txt"
+        },
+        {
+          "name": "SukkaW/Surge:domestic-domain",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/domestic.txt"
+        },
+        {
+          "name": "SukkaW/Surge:domestic-ip",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/ip/domestic.txt"
+        },
+        {
+          "name": "SukkaW/Surge:microsoft_cdn",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/microsoft_cdn.txt"
+        },
+        {
+          "name": "v2fly/domain-list-community:{cn,elsevier,sciencedirect}",
+          "kind": "v2fly",
+          "lists": [
+            "cn",
+            "elsevier",
+            "sciencedirect"
+          ]
+        },
+        {
+          "name": "v2fly/domain-list-community:*@cn",
+          "kind": "v2fly",
+          "all_lists": true,
+          "require_attributes": [
+            "cn"
+          ]
+        },
+        {
+          "name": "public-tailscale",
+          "path": "sources/public-tailscale.txt",
+          "kind": "domain-file"
+        },
+        {
+          "name": "local-direct",
+          "path": "sources/local-direct.txt",
+          "kind": "clash-file",
+          "optional_if_covered": true
+        }
+      ],
+      "exclude": [
+        "tailnet"
+      ]
+    },
+    {
+      "name": "global",
+      "sources": [
+        {
+          "name": "v2fly/domain-list-community:{anthropic,apple,category-ai-!cn,google,google-deepmind,google-gemini,openai}",
+          "kind": "v2fly",
+          "lists": [
+            "anthropic",
+            "apple",
+            "category-ai-!cn",
+            "google",
+            "google-deepmind",
+            "google-gemini",
+            "openai"
+          ]
+        },
+        {
+          "name": "SukkaW/Surge:ai-domain",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/ai.txt"
+        },
+        {
+          "name": "SukkaW/Surge:ai-ip",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/ip/ai.txt"
+        },
+        {
+          "name": "SukkaW/Surge:apple_services-domain",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/apple_services.txt"
+        },
+        {
+          "name": "SukkaW/Surge:apple_services-ip",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/ip/apple_services.txt"
+        },
+        {
+          "name": "v2fly/domain-list-community:geolocation-!cn",
+          "kind": "v2fly",
+          "lists": [
+            "geolocation-!cn"
+          ]
+        },
+        {
+          "name": "SukkaW/Surge:telegram-domain",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/telegram.txt"
+        },
+        {
+          "name": "SukkaW/Surge:telegram-ip",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/ip/telegram.txt"
+        },
+        {
+          "name": "SukkaW/Surge:global",
+          "kind": "clash",
+          "url": "https://ruleset.skk.moe/Clash/non_ip/global.txt"
+        }
+      ],
+      "exclude": [
+        "tailnet",
+        "direct"
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "domain": "claude.ai",
+      "ruleset": "global",
+      "exclusive": true
+    },
+    {
+      "domain": "github.com",
+      "ruleset": "global",
+      "exclusive": true
+    },
+    {
+      "domain": "tailscale.gjm20.top",
+      "ruleset": "tailnet",
+      "exclusive": false
+    },
+    {
+      "domain": "tailnet",
+      "ruleset": "tailnet",
+      "exclusive": false
+    },
+    {
+      "domain": "gjm20.top",
+      "ruleset": "direct",
+      "exclusive": false
+    },
+    {
+      "ip": "100.88.1.1",
+      "ruleset": "tailnet",
+      "exclusive": true
+    },
+    {
+      "ip": "100.89.1.1",
+      "ruleset": "direct",
+      "exclusive": true
+    }
+  ]
+}

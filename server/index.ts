@@ -1,4 +1,6 @@
-import { PlanError, renderConfiguration } from "./render";
+import { isProfile } from "../shared/profiles";
+import { renderProfile, ProfileInputError, type ProfileSecrets } from "./profile";
+import { PlanError, renderConfiguration } from "./legacy/render";
 import {
   isAuthorized,
   isHttps,
@@ -6,10 +8,9 @@ import {
   splitCredentials,
 } from "./auth";
 
-interface Env {
+interface Env extends ProfileSecrets {
   ASSETS: Fetcher;
   BASIC_AUTH_CREDENTIALS: string;
-  MAIN_SUBSCRIPTION_URL: string;
   REQUEST_RATE_LIMITER: RateLimit;
 }
 
@@ -42,7 +43,7 @@ function json(data: unknown, status = 200): Response {
   return Response.json(data, {
     status,
     headers: {
-      "cache-control": "no-store",
+      ...privateHeaders,
     },
   });
 }
@@ -74,20 +75,27 @@ export default {
       return unauthorized();
     }
 
-    if (url.pathname === "/auth-context") {
-      return json({
-        ...splitCredentials(env.BASIC_AUTH_CREDENTIALS),
-        mainSubscriptionUrl: env.MAIN_SUBSCRIPTION_URL,
-      });
+    if (url.pathname === "/v2/auth-context") {
+      return json(splitCredentials(env.BASIC_AUTH_CREDENTIALS));
     }
 
     if (url.pathname === "/health") {
       return json({ ok: true });
     }
 
-    if (url.pathname === "/config.yaml" || url.searchParams.get("o") === "y") {
+    const profileMatch = /^\/v2\/config\/([^/]+)\.yaml$/.exec(url.pathname);
+    const legacy = url.pathname === "/config.yaml" ||
+      (!url.pathname.startsWith("/v2/") && url.searchParams.get("o") === "y");
+    if (profileMatch || legacy) {
       try {
-        const body = renderConfiguration(url.searchParams, env.MAIN_SUBSCRIPTION_URL);
+        let body: string;
+        if (profileMatch) {
+          const id = profileMatch[1];
+          if (!isProfile(id)) return new Response("Unknown profile", {status: 404, headers: privateHeaders});
+          body = renderProfile(id, url.searchParams, env);
+        } else {
+          body = renderConfiguration(url.searchParams, env.MAIN_SUBSCRIPTION_URL, env.DOH_URL, env.TAILSCALE_CONTROL_URL);
+        }
         return new Response(body, {
           headers: {
             "content-type": "text/yaml; charset=utf-8",
@@ -96,14 +104,15 @@ export default {
           },
         });
       } catch (error) {
-        if (error instanceof PlanError) {
+        if (error instanceof PlanError || error instanceof ProfileInputError) {
           return json({ error: error.message }, 400);
         }
-        console.error(error);
+        console.error("Unable to render configuration");
         return json({ error: "Unable to render configuration" }, 500);
       }
     }
 
+    if (url.pathname === "/") return new Response(null, {status: 302, headers: {...privateHeaders, location: "/v2/"}});
     return env.ASSETS.fetch(request);
   },
 };

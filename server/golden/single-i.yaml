@@ -1,0 +1,72 @@
+mixed-port: 7890
+mode: rule
+
+allow-lan: false
+
+external-controller: 127.0.0.1:9090
+log-level: warning
+
+find-process-mode: strict
+
+geox-url:
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+geo-auto-update: false
+
+
+
+
+proxy-providers:
+  main-subscription:
+    type: http
+    url: "https://subscription.invalid"
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      timeout: 5000
+      lazy: true
+      expected-status: 204
+
+proxy-groups:
+  - name: default
+    type: select
+    url: http://www.gstatic.com/generate_204
+    interval: 3600
+    use:
+      - main-subscription
+
+proxies:
+  - name: tailscale
+    type: tailscale
+    hostname: "device"
+    auth-key: "example"
+    control-url: https://control.invalid
+rules:
+  # IPv4 Special Address Blocks
+  - IP-CIDR,0.0.0.0/8,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,100.64.0.0/10,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,169.254.0.0/16,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,192.0.0.0/24,DIRECT
+  - IP-CIDR,192.0.2.0/24,DIRECT
+  - IP-CIDR,192.88.99.0/24,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,198.18.0.0/15,DIRECT
+  - IP-CIDR,198.51.100.0/24,DIRECT
+  - IP-CIDR,203.0.113.0/24,DIRECT
+  - IP-CIDR,224.0.0.0/4,DIRECT
+  - IP-CIDR,233.252.0.0/24,DIRECT
+  - IP-CIDR,240.0.0.0/4,DIRECT
+  - IP-CIDR,255.255.255.255/32,DIRECT
+
+  # IPv6 Special Address Blocks
+  - IP-CIDR,::/128,DIRECT
+  - IP-CIDR,::1/128,DIRECT
+  - IP-CIDR,2001:db8::/32,DIRECT
+  - IP-CIDR,3fff::/20,DIRECT
+  - IP-CIDR,fc00::/7,DIRECT
+  - IP-CIDR,fe80::/64,DIRECT

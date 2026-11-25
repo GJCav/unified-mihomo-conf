@@ -1,0 +1,67 @@
+mixed-port: 7890
+mode: rule
+
+allow-lan: false
+
+external-controller: 127.0.0.1:9090
+log-level: warning
+
+find-process-mode: strict
+
+geox-url:
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+geo-auto-update: false
+
+
+dns:
+  # 下面的配置参考 https://github.com/GJCav/myserver/blob/main/mihomo/config.yml
+  enable: true
+  listen: 0.0.0.0:53
+  # 用于解析 nameserver 列表中 DoH/DoT 服务器的域名地址
+  default-nameserver:
+    - "119.29.29.29"
+    - "2402:4e00::"
+    - "223.5.5.5"
+    - "2400:3200::1"
+    - "8.8.8.8"
+  # 用这个列表中的 DNS/DoH/DoT 服务器解析正在查询的域名地址
+  nameserver:
+    - "https://dns.invalid/query"
+  nameserver-policy:
+    '+.tailnet': ts://tailscale
+
+proxy-providers:
+  main-subscription:
+    type: http
+    url: "https://subscription.invalid"
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      timeout: 5000
+      lazy: true
+      expected-status: 204
+
+proxy-groups:
+  - name: default
+    type: select
+    url: http://www.gstatic.com/generate_204
+    interval: 3600
+    use:
+      - main-subscription
+
+
+rules:
+  # Proxy Google
+  - DOMAIN-SUFFIX,gstatic.com,default
+  - DOMAIN-SUFFIX,googletagmanager.com,default
+  - DOMAIN-SUFFIX,google-analytics.com,default
+
+  # Proxy Anthropic.com
+  - DOMAIN-SUFFIX,claude.ai,default
+  - DOMAIN-SUFFIX,anthropic.com,default
+  - DOMAIN-SUFFIX,claude.com,default
+
+  - MATCH,default

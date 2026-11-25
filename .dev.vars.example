@@ -1,2 +1,5 @@
 BASIC_AUTH_CREDENTIALS="username:password"
 MAIN_SUBSCRIPTION_URL="https://provider.example/subscription"
+DOH_URL="https://dns.example/dns-query"
+TAILSCALE_CONTROL_URL="https://control.example"
+PUBLIC_BASE_URL="https://worker.example"

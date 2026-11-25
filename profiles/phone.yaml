@@ -1,0 +1,168 @@
+mixed-port: 7890
+mode: rule
+
+allow-lan: false
+
+external-controller: 127.0.0.1:9090
+log-level: warning
+
+find-process-mode: strict
+
+geox-url:
+  asn: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb"
+geo-auto-update: false
+
+
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  default-nameserver: [101.6.6.6, 223.5.5.5, 119.29.29.29]
+  nameserver: ["{{{doh_url}}}"]
+  nameserver-policy:
+    '+.tailnet': ts://tailscale
+    'rule-set:tailnet-domain,custom-proxy-domain': "{{{doh_url}}}"
+    'rule-set:custom-direct-domain,direct-domain': [101.6.6.6, 223.5.5.5, 119.29.29.29]
+
+tun:
+  enable: true
+  stack: system
+  auto-detect-interface: true
+  auto-route: true
+  auto-redirect: true
+proxy-providers:
+  main-subscription:
+    type: http
+    url: "{{{subscription}}}"
+    interval: 3600
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      timeout: 5000
+      lazy: true
+      expected-status: 204
+
+proxy-groups:
+  - name: default
+    type: select
+    url: http://www.gstatic.com/generate_204
+    interval: 3600
+    use:
+      - main-subscription
+
+proxies:
+  - name: tailscale
+    type: tailscale
+    hostname: "{{{h}}}"
+    auth-key: "{{{k}}}"
+    control-url: "{{{control_url}}}"
+rule-providers:
+  tailnet-domain:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "{{{public_base_url}}}/v2/rules/tailnet.domain.mrs"
+    path: ./rules/tailnet.domain.mrs
+    proxy: DIRECT
+    interval: 86400
+  tailnet-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "{{{public_base_url}}}/v2/rules/tailnet.ipcidr.mrs"
+    path: ./rules/tailnet.ipcidr.mrs
+    proxy: DIRECT
+    interval: 86400
+  custom-proxy-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: "{{{public_base_url}}}/v2/rules/custom-proxy.domain.txt"
+    path: ./rules/custom-proxy.domain.txt
+    proxy: DIRECT
+    interval: 86400
+  custom-proxy-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: "{{{public_base_url}}}/v2/rules/custom-proxy.classical.txt"
+    path: ./rules/custom-proxy.classical.txt
+    proxy: DIRECT
+    interval: 86400
+  custom-direct-domain:
+    type: http
+    behavior: domain
+    format: text
+    url: "{{{public_base_url}}}/v2/rules/custom-direct.domain.txt"
+    path: ./rules/custom-direct.domain.txt
+    proxy: DIRECT
+    interval: 86400
+  custom-direct-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: "{{{public_base_url}}}/v2/rules/custom-direct.classical.txt"
+    path: ./rules/custom-direct.classical.txt
+    proxy: DIRECT
+    interval: 86400
+  direct-domain:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "{{{public_base_url}}}/v2/rules/direct.domain.mrs"
+    path: ./rules/direct.domain.mrs
+    proxy: DIRECT
+    interval: 86400
+  direct-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: "{{{public_base_url}}}/v2/rules/direct.classical.txt"
+    path: ./rules/direct.classical.txt
+    proxy: DIRECT
+    interval: 86400
+  global-domain:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "{{{public_base_url}}}/v2/rules/global.domain.mrs"
+    path: ./rules/global.domain.mrs
+    proxy: DIRECT
+    interval: 86400
+  global-classical:
+    type: http
+    behavior: classical
+    format: text
+    url: "{{{public_base_url}}}/v2/rules/global.classical.txt"
+    path: ./rules/global.classical.txt
+    proxy: DIRECT
+    interval: 86400
+  global-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "{{{public_base_url}}}/v2/rules/global.ipcidr.mrs"
+    path: ./rules/global.ipcidr.mrs
+    proxy: DIRECT
+    interval: 86400
+  direct-ipcidr:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "{{{public_base_url}}}/v2/rules/direct.ipcidr.mrs"
+    path: ./rules/direct.ipcidr.mrs
+    proxy: DIRECT
+    interval: 86400
+rules:
+  - RULE-SET,tailnet-domain,tailscale
+  - RULE-SET,tailnet-ipcidr,tailscale,no-resolve
+  - RULE-SET,custom-proxy-domain,default
+  - RULE-SET,custom-proxy-classical,default
+  - RULE-SET,custom-direct-domain,DIRECT
+  - RULE-SET,custom-direct-classical,DIRECT
+  - RULE-SET,direct-domain,DIRECT
+  - RULE-SET,direct-classical,DIRECT
+  - RULE-SET,global-domain,default
+  - RULE-SET,global-classical,default
+  - RULE-SET,global-ipcidr,default,no-resolve
+  - RULE-SET,direct-ipcidr,DIRECT
+  - MATCH,default

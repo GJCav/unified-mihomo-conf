@@ -1,23 +1,23 @@
 import Mustache from "mustache";
 
-import skeleton from "../snippet/skeleton.yaml?raw";
-import dnsBasic from "../snippet/dns/basic.yaml?raw";
-import dnsTailnet from "../snippet/dns/tailnet.yaml?raw";
-import generalBasic from "../snippet/general/basic.yaml?raw";
-import generalGateway from "../snippet/general/gateway.yaml?raw";
-import externalUiBasic from "../snippet/external-ui/basic.yaml?raw";
-import tunBasic from "../snippet/tun/basic.yaml?raw";
-import tunTailscaleRouteExclusion from "../snippet/tun/tailscale-route-exclusion.yaml?raw";
-import proxyGateway from "../snippet/proxies/gateway.yaml?raw";
-import proxyTailscale from "../snippet/proxies/tailscale.yaml?raw";
-import proxyGroupMain from "../snippet/proxy-groups/main.yaml?raw";
-import proxyProviderMain from "../snippet/proxy-providers/main.yaml?raw";
-import rulesBypassAcademic from "../snippet/rules/bypass-academic-publishers.yaml?raw";
-import rulesBypassCn from "../snippet/rules/bypass-CN-websites.yaml?raw";
-import rulesBypassSpecialIp from "../snippet/rules/bypass-special-IP.yaml?raw";
-import rulesBypassThuIp from "../snippet/rules/bypass-THU-IP.yaml?raw";
-import rulesProxyWebsites from "../snippet/rules/proxy-websites.yaml?raw";
-import rulesBypassTailnet from "../snippet/rules/bypass-tailnet.yaml?raw";
+import skeleton from "../../snippet/skeleton.yaml?raw";
+import dnsBasic from "../../snippet/dns/basic.yaml?raw";
+import dnsTailnet from "../../snippet/dns/tailnet.yaml?raw";
+import generalBasic from "../../snippet/general/basic.yaml?raw";
+import generalGateway from "../../snippet/general/gateway.yaml?raw";
+import externalUiBasic from "../../snippet/external-ui/basic.yaml?raw";
+import tunBasic from "../../snippet/tun/basic.yaml?raw";
+import tunTailscaleRouteExclusion from "../../snippet/tun/tailscale-route-exclusion.yaml?raw";
+import proxyGateway from "../../snippet/proxies/gateway.yaml?raw";
+import proxyTailscale from "../../snippet/proxies/tailscale.yaml?raw";
+import proxyGroupMain from "../../snippet/proxy-groups/main.yaml?raw";
+import proxyProviderMain from "../../snippet/proxy-providers/main.yaml?raw";
+import rulesBypassAcademic from "../../snippet/rules/bypass-academic-publishers.yaml?raw";
+import rulesBypassCn from "../../snippet/rules/bypass-CN-websites.yaml?raw";
+import rulesBypassSpecialIp from "../../snippet/rules/bypass-special-IP.yaml?raw";
+import rulesBypassThuIp from "../../snippet/rules/bypass-THU-IP.yaml?raw";
+import rulesProxyWebsites from "../../snippet/rules/proxy-websites.yaml?raw";
+import rulesBypassTailnet from "../../snippet/rules/bypass-tailnet.yaml?raw";
 
 type GeneralChoice = "basic" | "gateway";
 type ExternalUiChoice = "basic" | "none";
@@ -199,6 +199,8 @@ function joinSnippets(items: string[]): string {
 export function renderConfiguration(
   params: URLSearchParams,
   mainSubscriptionUrl?: string,
+  dohUrl?: string,
+  controlUrl?: string,
 ): string {
   const plan = parsePlan(params);
   const hasMainProvider = plan.providers.includes("main");
@@ -239,6 +241,8 @@ export function renderConfiguration(
     proxies: plan.proxies.length > 0,
   };
 
+  if (plan.dns !== "none") values.doh_url = escapeQuoted(requireHttpUrl(dohUrl ?? "", "DOH_URL"));
+  if (hasTailscale) values.control_url = requireHttpUrl(controlUrl ?? "", "TAILSCALE_CONTROL_URL");
   if (hasMainProvider) {
     values.main_subscription_url = escapeQuoted(
       requireHttpUrl(mainSubscriptionUrl?.trim() ?? "", "MAIN_SUBSCRIPTION_URL"),
